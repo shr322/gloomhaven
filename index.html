@@ -4,15 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light" />
-
-    <meta property="og:title" content="글룸헤이븐 종이">
-    <meta property="og:description" content="우리 파티만의 글룸헤이븐 캐릭터 종이 대체">
-    <meta property="og:image" content="thum.jpg" />
-    <link rel="icon" type="image/png" href="thum.jpg">
-
     <title>글룸헤븐 종이 대체</title>
     <style>
-      /* 🌟 시스템 설정 무시하고 라이트모드 색상으로 완전 고정 */
       :root {
         color-scheme: light;
       }
@@ -42,28 +35,57 @@
         align-items: center;
         margin-bottom: 10px;
       }
-      .btn-group button {
-        padding: 10px;
-        font-size: 14px;
+
+      .calc-group {
+        display: flex;
+        gap: 5px;
+        margin-bottom: 10px;
+      }
+      .calc-input {
+        flex: 2;
+        padding: 12px !important;
+        font-size: 16px !important;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        text-align: center;
+      }
+      .btn-calc {
+        flex: 1;
+        padding: 12px;
+        font-size: 18px;
         font-weight: bold;
-        color: #333;
         border: none;
         border-radius: 5px;
-        background-color: #e0e0e0;
         cursor: pointer;
-        margin-right: 5px;
-        flex: 1;
+        color: white;
       }
-      .btn-group {
-        display: flex;
-        width: 100%;
-        justify-content: space-between;
+
+      /* 🌟 플러스는 파란색, 마이너스는 빨간색으로 통일 */
+      .btn-plus {
+        background-color: #007bff;
       }
-      .btn-group button:active {
-        background-color: #ccc;
+      .btn-minus {
+        background-color: #d9534f;
       }
+      .btn-calc:active {
+        opacity: 0.8;
+      }
+
+      .log-area {
+        background: #eee;
+        padding: 10px;
+        border-radius: 5px;
+        font-size: 13px;
+        max-height: 100px;
+        overflow-y: auto;
+        margin-top: 10px;
+        border: 1px inset #ccc;
+        line-height: 1.4;
+      }
+
       textarea,
       input[type="text"],
+      input[type="number"],
       select {
         width: 100%;
         box-sizing: border-box;
@@ -73,6 +95,7 @@
         background-color: #fff;
         color: #333;
         border: 1px solid #ccc;
+        border-radius: 4px;
       }
       .highlight {
         color: #d9534f;
@@ -161,14 +184,105 @@
         background-color: #d9534f;
         width: 100%;
       }
-      .btn-green:active {
-        background-color: #45a049;
+
+      .equip-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 15px;
       }
-      .btn-orange:active {
-        background-color: #ec971f;
+      .slot-btn {
+        background: #e9ecef;
+        border: 1px solid #ced4da;
+        padding: 10px;
+        border-radius: 5px;
+        text-align: left;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: bold;
+        display: flex;
+        flex-direction: column;
+        color: #333;
+        min-height: 60px;
       }
-      .btn-red:active {
-        background-color: #c9302c;
+      .slot-btn:hover {
+        background: #dee2e6;
+      }
+      .slot-btn span {
+        font-weight: normal;
+        color: #007bff;
+        margin-top: 6px;
+        font-size: 12px;
+        font-weight: bold;
+        line-height: 1.4;
+      }
+      .slot-filled {
+        background: #e6f2ff;
+        border-color: #b3d7ff;
+      }
+
+      .shop-area {
+        background: #fff3cd;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 15px;
+        border: 1px solid #ffeeba;
+      }
+      .shop-item {
+        background: white;
+        border: 1px solid #ccc;
+        padding: 8px;
+        margin-bottom: 5px;
+        border-radius: 4px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .shop-item button {
+        color: white;
+        border: none;
+        padding: 6px 10px;
+        border-radius: 3px;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 12px;
+      }
+      .shop-item button.btn-buy {
+        background: #007bff;
+      }
+      .shop-item button.btn-sell {
+        background: #d9534f;
+      }
+      .shop-item button:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+      }
+      .shop-btns {
+        display: flex;
+        gap: 5px;
+      }
+
+      .unlock-box {
+        background: #e2e3e5;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 15px;
+        border: 1px solid #d6d8db;
+      }
+      .unlock-badge {
+        display: inline-block;
+        background: #6c757d;
+        color: white;
+        padding: 3px 8px;
+        border-radius: 12px;
+        font-size: 11px;
+        margin: 2px;
+      }
+      .unlock-badge span {
+        cursor: pointer;
+        margin-left: 5px;
+        color: #ffcccc;
+        font-weight: bold;
       }
     </style>
   </head>
@@ -208,43 +322,163 @@
     </div>
 
     <div class="box">
-      <h3>⭐ 경험치 (XP): <span id="xpDisplay" class="highlight">0</span></h3>
-      <div class="btn-group">
-        <button onclick="updateVal('xp', -5)">- 5</button>
-        <button onclick="updateVal('xp', -1)">- 1</button>
-        <button onclick="updateVal('xp', 1)">+ 1</button>
-        <button onclick="updateVal('xp', 5)">+ 5</button>
+      <h3>🏘️ 마을 상태</h3>
+      <div class="row">
+        <span>번영도 레벨 (상점 해금):</span>
+        <input
+          type="number"
+          id="prosperity"
+          onchange="syncFromUI()"
+          style="width: 80px; text-align: center"
+          min="1"
+          max="9"
+          value="1"
+        />
       </div>
-      <textarea
-        id="xpMemo"
-        rows="2"
-        placeholder="경험치 획득 메모..."
-        onchange="syncFromUI()"
-      ></textarea>
+      <div class="row" style="margin-bottom: 0">
+        <span>파티 평판 (-20 ~ 20):</span>
+        <input
+          type="number"
+          id="reputation"
+          onchange="syncFromUI()"
+          style="width: 80px; text-align: center"
+          min="-20"
+          max="20"
+          value="0"
+        />
+      </div>
     </div>
 
     <div class="box">
-      <h3>💰 금화: <span id="goldDisplay" class="highlight">0</span></h3>
-      <div class="btn-group">
-        <button onclick="updateVal('gold', -5)">- 5</button>
-        <button onclick="updateVal('gold', -1)">- 1</button>
-        <button onclick="updateVal('gold', 1)">+ 1</button>
-        <button onclick="updateVal('gold', 5)">+ 5</button>
+      <h3>
+        ⭐ 경험치 (XP):
+        <span id="xpDisplay" style="color: #007bff; font-weight: bold">0</span>
+      </h3>
+      <div class="calc-group">
+        <input
+          type="number"
+          id="xpInput"
+          class="calc-input"
+          placeholder="숫자 입력"
+        />
+        <button class="btn-calc btn-plus" onclick="calcValue('xp', 'plus')">
+          +
+        </button>
+        <button class="btn-calc btn-minus" onclick="calcValue('xp', 'minus')">
+          -
+        </button>
       </div>
-      <textarea
-        id="goldMemo"
-        rows="2"
-        placeholder="금화 획득 메모..."
-        onchange="syncFromUI()"
-      ></textarea>
+      <div id="xpLog" class="log-area">경험치 기록이 없습니다.</div>
     </div>
 
     <div class="box">
-      <h3>🎒 획득 아이템</h3>
+      <h3>
+        💰 금화:
+        <span id="goldDisplay" style="color: #007bff; font-weight: bold"
+          >0</span
+        >
+      </h3>
+      <div class="calc-group">
+        <input
+          type="number"
+          id="goldInput"
+          class="calc-input"
+          placeholder="숫자 입력"
+        />
+        <button class="btn-calc btn-plus" onclick="calcValue('gold', 'plus')">
+          +
+        </button>
+        <button class="btn-calc btn-minus" onclick="calcValue('gold', 'minus')">
+          -
+        </button>
+      </div>
+      <div id="goldLog" class="log-area">금화 기록이 없습니다.</div>
+    </div>
+
+    <div class="box">
+      <h3>🎒 보유 아이템 및 상점</h3>
+
+      <div class="unlock-box">
+        <div class="row" style="margin-bottom: 5px">
+          <span style="font-size: 13px; font-weight: bold"
+            >🔓 특수 아이템 해금 (번호 입력)</span
+          >
+          <div style="display: flex; gap: 5px">
+            <input
+              type="number"
+              id="unlockInput"
+              placeholder="예: 71"
+              style="width: 70px; margin-top: 0; padding: 4px"
+            />
+            <button
+              onclick="unlockItem()"
+              style="
+                background: #28a745;
+                color: white;
+                border: none;
+                border-radius: 3px;
+                padding: 0 10px;
+                cursor: pointer;
+              "
+            >
+              추가
+            </button>
+          </div>
+        </div>
+        <div id="unlockedList" style="min-height: 20px"></div>
+      </div>
+
+      <div class="equip-grid">
+        <button class="slot-btn" id="slot-head" onclick="openShop('head')">
+          🧢 머리 <span id="eq-head">없음</span>
+        </button>
+        <button class="slot-btn" id="slot-body" onclick="openShop('body')">
+          👕 몸통 <span id="eq-body">없음</span>
+        </button>
+        <button class="slot-btn" id="slot-hand" onclick="openShop('hand')">
+          ⚔️ 손 <span id="eq-hand">없음</span>
+        </button>
+        <button class="slot-btn" id="slot-feet" onclick="openShop('feet')">
+          👞 신발 <span id="eq-feet">없음</span>
+        </button>
+        <button
+          class="slot-btn"
+          id="slot-small"
+          onclick="openShop('small')"
+          style="grid-column: span 2"
+        >
+          🧪 소형 <span id="eq-small">없음</span>
+        </button>
+      </div>
+
+      <div id="shopContainer" class="shop-area" style="display: none">
+        <h4 id="shopTitle" style="margin-top: 0; margin-bottom: 10px">
+          🛒 상점
+        </h4>
+        <div id="shopList"></div>
+        <button
+          onclick="closeShop()"
+          style="
+            width: 100%;
+            padding: 8px;
+            margin-top: 10px;
+            border: none;
+            background: #ccc;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #333;
+          "
+        >
+          닫기
+        </button>
+      </div>
+
+      <h4 style="margin-top: 5px; margin-bottom: 5px">기타 전리품 메모</h4>
       <textarea
         id="items"
-        rows="4"
-        placeholder="획득한 아이템 입력..."
+        rows="2"
+        placeholder="기타 아이템 메모..."
         onchange="syncFromUI()"
       ></textarea>
     </div>
@@ -257,11 +491,7 @@
           >0</span
         >/18)
       </h3>
-      <p style="font-size: 12px; color: #777">
-        3개 달성 시 특혜 1개가 자동으로 추가됩니다.
-      </p>
       <div id="checkGrid" style="text-align: center"></div>
-
       <div
         class="row"
         style="
@@ -320,16 +550,11 @@
 
     <div class="box">
       <h3>💾 데이터 관리</h3>
-      <p style="font-size: 12px; color: #777; margin-top: 0">
-        진행 상황 백업/복구 및 캐릭터 초기화
-      </p>
       <div class="row">
         <button class="action-btn btn-green" onclick="exportData()">
-          📥 백업 (다운로드)
+          📥 백업
         </button>
-        <label for="importFile" class="action-btn btn-orange"
-          >📤 복구 (불러오기)</label
-        >
+        <label for="importFile" class="action-btn btn-orange">📤 복구</label>
         <input
           type="file"
           id="importFile"
@@ -351,7 +576,6 @@
       function mkImg(fileName) {
         return `<img src="${fileName}" style="height:20px;vertical-align:middle;margin:0 2px;" alt="${fileName}">`;
       }
-
       const imgM1 = mkImg("-1.jpg");
       const imgM2 = mkImg("-2.jpg");
       const imgP0 = mkImg("+0.jpg");
@@ -359,13 +583,11 @@
       const imgP2 = mkImg("+2.jpg");
       const imgP3 = mkImg("+3.jpg");
       const imgRoll = mkImg("굴림.png");
-
       const imgM2_W = imgM2;
       const imgN1 = imgM1;
       const imgN2 = imgM2;
       const imgP00_W = imgP0;
       const imgP2_W = imgP2;
-
       const imgPush = mkImg("밀기.png");
       const imgPull = mkImg("당기기.png");
       const imgPierce = mkImg("관통.png");
@@ -550,6 +772,114 @@
         ],
       };
 
+      const itemDB = [
+        { id: 1, name: "활보의 장화", slot: "feet", price: 20, pro: 1 },
+        { id: 2, name: "날개 달린 신발", slot: "feet", price: 20, pro: 1 },
+        { id: 3, name: "가죽 갑옷", slot: "body", price: 10, pro: 1 },
+        { id: 4, name: "가죽 단갑", slot: "body", price: 20, pro: 1 },
+        { id: 5, name: "투명 망토", slot: "body", price: 20, pro: 1 },
+        { id: 6, name: "독수리눈 고글", slot: "head", price: 30, pro: 1 },
+        { id: 7, name: "철 투구", slot: "head", price: 10, pro: 1 },
+        { id: 8, name: "히터 실드", slot: "hand", price: 20, pro: 1 },
+        { id: 9, name: "관통의 활", slot: "hand", price: 30, pro: 1 },
+        { id: 10, name: "전투 망치", slot: "hand", price: 30, pro: 1 },
+        { id: 11, name: "독 단검", slot: "hand", price: 20, pro: 1 },
+        { id: 12, name: "하급 치유 물약", slot: "small", price: 10, pro: 1 },
+        { id: 13, name: "하급 활력 물약", slot: "small", price: 10, pro: 1 },
+        { id: 14, name: "하급 힘 물약", slot: "small", price: 10, pro: 1 },
+        { id: 15, name: "신속의 장화", slot: "feet", price: 50, pro: 2 },
+        { id: 16, name: "주머니 달린 망토", slot: "body", price: 20, pro: 2 },
+        { id: 17, name: "권능의 부적", slot: "head", price: 45, pro: 2 },
+        { id: 18, name: "전투 도끼", slot: "hand", price: 20, pro: 2 },
+        { id: 19, name: "그물", slot: "hand", price: 20, pro: 2 },
+        { id: 20, name: "하급 마나 물약", slot: "small", price: 10, pro: 2 },
+        { id: 21, name: "기절 화약", slot: "small", price: 20, pro: 2 },
+        { id: 22, name: "튼튼한 경갑", slot: "feet", price: 20, pro: 3 },
+        { id: 23, name: "사슬 갑옷", slot: "body", price: 20, pro: 3 },
+        { id: 24, name: "호신부", slot: "head", price: 20, pro: 3 },
+        { id: 25, name: "톱니검", slot: "hand", price: 30, pro: 3 },
+        { id: 26, name: "긴 창", slot: "hand", price: 30, pro: 3 },
+        { id: 27, name: "주 치유 물약", slot: "small", price: 30, pro: 3 },
+        { id: 28, name: "달 귀걸이", slot: "small", price: 20, pro: 3 },
+        { id: 29, name: "편안한 신발", slot: "feet", price: 30, pro: 4 },
+        { id: 30, name: "징 박힌 가죽 갑옷", slot: "body", price: 30, pro: 4 },
+        { id: 31, name: "매의 눈 고글", slot: "head", price: 20, pro: 4 },
+        { id: 32, name: "탑 방패", slot: "hand", price: 40, pro: 4 },
+        { id: 33, name: "불안정한 폭발물", slot: "hand", price: 30, pro: 4 },
+        { id: 34, name: "주 활력 물약", slot: "small", price: 30, pro: 4 },
+        { id: 35, name: "매 조각상", slot: "small", price: 50, pro: 4 },
+        { id: 36, name: "질주의 장화", slot: "feet", price: 40, pro: 5 },
+        { id: 37, name: "덧댄 갑옷", slot: "body", price: 40, pro: 5 },
+        { id: 38, name: "견고한 머리띠", slot: "head", price: 30, pro: 5 },
+        { id: 39, name: "갈고리 사슬", slot: "hand", price: 40, pro: 5 },
+        { id: 40, name: "다용도 단검", slot: "hand", price: 25, pro: 5 },
+        { id: 41, name: "주 힘 물약", slot: "small", price: 40, pro: 5 },
+        { id: 42, name: "강인함의 반지", slot: "small", price: 30, pro: 5 },
+        { id: 71, name: "징 박힌 가죽 장화", slot: "feet", price: 50, pro: 99 },
+        { id: 72, name: "찬란한 판금 갑옷", slot: "body", price: 50, pro: 99 },
+        { id: 73, name: "깜빡이는 망토", slot: "body", price: 50, pro: 99 },
+        { id: 74, name: "부드러운 검", slot: "hand", price: 30, pro: 99 },
+        { id: 75, name: "순환의 부적", slot: "head", price: 40, pro: 99 },
+        { id: 76, name: "사슬 두건", slot: "head", price: 40, pro: 99 },
+        { id: 77, name: "험악한 단검", slot: "hand", price: 35, pro: 99 },
+        { id: 78, name: "폭풍의 방패", slot: "hand", price: 30, pro: 99 },
+        { id: 79, name: "지옥불 단검", slot: "hand", price: 35, pro: 99 },
+        { id: 80, name: "지진의 망치", slot: "hand", price: 40, pro: 99 },
+        { id: 81, name: "빛나는 창", slot: "hand", price: 40, pro: 99 },
+        { id: 82, name: "밤의 방패", slot: "hand", price: 30, pro: 99 },
+        { id: 83, name: "한기 걸음 장화", slot: "feet", price: 50, pro: 99 },
+        { id: 84, name: "얼어붙은 호신부", slot: "head", price: 50, pro: 99 },
+        { id: 85, name: "희생의 가운", slot: "body", price: 50, pro: 99 },
+        { id: 86, name: "파멸의 나침반", slot: "small", price: 50, pro: 99 },
+        { id: 87, name: "환상의 망토", slot: "body", price: 40, pro: 99 },
+        { id: 88, name: "유성검", slot: "hand", price: 40, pro: 99 },
+        { id: 89, name: "하급 치유의 영약", slot: "small", price: 10, pro: 99 },
+        { id: 90, name: "태양의 귀걸이", slot: "small", price: 40, pro: 99 },
+        { id: 91, name: "강철 반지", slot: "small", price: 20, pro: 99 },
+        { id: 92, name: "젖은 망토", slot: "body", price: 25, pro: 99 },
+        { id: 93, name: "살갗 방패", slot: "hand", price: 40, pro: 99 },
+        { id: 94, name: "은밀함의 혼합물", slot: "small", price: 20, pro: 99 },
+        { id: 95, name: "백금 호신부", slot: "head", price: 45, pro: 99 },
+        { id: 96, name: "환희의 영약", slot: "small", price: 30, pro: 99 },
+        { id: 97, name: "환상의 단검", slot: "hand", price: 40, pro: 99 },
+        { id: 98, name: "맹독의 영약", slot: "small", price: 20, pro: 99 },
+        { id: 99, name: "마그마 장화", slot: "feet", price: 50, pro: 99 },
+        { id: 100, name: "기계충 떼의 가운", slot: "body", price: 40, pro: 99 },
+        { id: 101, name: "두 번째 피부", slot: "body", price: 30, pro: 99 },
+        { id: 102, name: "희생의 호신부", slot: "head", price: 50, pro: 99 },
+        { id: 103, name: "가시 돋친 갑옷", slot: "body", price: 45, pro: 99 },
+        { id: 104, name: "거대 괴수 호신부", slot: "head", price: 40, pro: 99 },
+        { id: 105, name: "벼락의 장식", slot: "head", price: 35, pro: 99 },
+        { id: 106, name: "목장식 호신부", slot: "head", price: 30, pro: 99 },
+        { id: 107, name: "뿔 달린 투구", slot: "head", price: 30, pro: 99 },
+        { id: 108, name: "들쭉날쭉한 칼날", slot: "hand", price: 30, pro: 99 },
+        { id: 109, name: "도둑의 단검", slot: "hand", price: 20, pro: 99 },
+        { id: 110, name: "기계충 칼날", slot: "hand", price: 30, pro: 99 },
+        { id: 111, name: "기계충의 활", slot: "hand", price: 40, pro: 99 },
+        { id: 112, name: "고대 굴착기", slot: "hand", price: 30, pro: 99 },
+        { id: 113, name: "해골 도끼", slot: "hand", price: 50, pro: 99 },
+        { id: 114, name: "파멸의 지팡이", slot: "hand", price: 50, pro: 99 },
+        { id: 115, name: "명령의 지팡이", slot: "hand", price: 40, pro: 99 },
+        { id: 116, name: "원소의 지팡이", slot: "hand", price: 40, pro: 99 },
+        { id: 117, name: "피의 도끼", slot: "hand", price: 40, pro: 99 },
+        { id: 118, name: "저주의 지팡이", slot: "hand", price: 40, pro: 99 },
+        { id: 119, name: "거미의 독액", slot: "small", price: 15, pro: 99 },
+        { id: 120, name: "검은불 혼합물", slot: "small", price: 25, pro: 99 },
+        { id: 121, name: "독 단검 연마제", slot: "small", price: 20, pro: 99 },
+        { id: 122, name: "치료의 조각상", slot: "small", price: 50, pro: 99 },
+        { id: 123, name: "강철 반지", slot: "small", price: 20, pro: 99 },
+        { id: 124, name: "파멸의 나침반", slot: "small", price: 50, pro: 99 },
+        { id: 125, name: "톱니 상자", slot: "small", price: 30, pro: 99 },
+        { id: 126, name: "톱니 폭탄", slot: "small", price: 30, pro: 99 },
+        { id: 127, name: "비행 장비", slot: "small", price: 50, pro: 99 },
+        { id: 128, name: "흑요석 호신부", slot: "head", price: 40, pro: 99 },
+        { id: 129, name: "암흑 장막", slot: "body", price: 50, pro: 99 },
+        { id: 130, name: "빛나는 단검", slot: "hand", price: 30, pro: 99 },
+        { id: 131, name: "영혼 낫", slot: "hand", price: 40, pro: 99 },
+        { id: 132, name: "지옥불 검", slot: "hand", price: 35, pro: 99 },
+        { id: 133, name: "저주받은 부적", slot: "head", price: 40, pro: 99 },
+      ];
+
       let state = {
         classId: "scoundrel",
         name: "",
@@ -557,21 +887,232 @@
         gold: 0,
         checkList: [],
         bonusPerks: 0,
-        xpMemo: "",
-        goldMemo: "",
         items: "",
         checkedPerks: [],
         memo: "",
+        xpLogs: [],
+        goldLogs: [],
+        prosperity: 1,
+        reputation: 0,
+        ownedItems: [],
+        unlockedItems: [],
       };
 
+      function appendLog(logType, msg) {
+        if (!state[logType]) state[logType] = [];
+        state[logType].unshift(msg);
+        if (state[logType].length > 20) state[logType].pop();
+      }
+
+      function calcValue(key, type) {
+        const inputId = key + "Input";
+        const logId = key + "Logs";
+        const inputVal = parseInt(document.getElementById(inputId).value);
+
+        if (isNaN(inputVal) || inputVal <= 0) return;
+
+        const change = type === "plus" ? inputVal : -inputVal;
+        state[key] += change;
+        if (state[key] < 0) state[key] = 0;
+
+        const logMsg = `${type === "plus" ? "+" : "-"}${inputVal} (총 ${state[key]})`;
+        appendLog(logId, logMsg);
+
+        document.getElementById(inputId).value = "";
+        updateStorage();
+        render();
+      }
+
+      // 🌟 로그 렌더링 시 색상 처리 (+는 파랑, -는 빨강)
+      function renderLogs(logs, elementId) {
+        const el = document.getElementById(elementId);
+        if (!logs || logs.length === 0) {
+          el.innerHTML = "기록이 없습니다.";
+          return;
+        }
+        el.innerHTML = logs
+          .map((log) => {
+            let color = "#333";
+            if (log.startsWith("+")) color = "#007bff";
+            if (log.startsWith("-")) color = "#d9534f";
+            return `<div style="color: ${color}; font-weight: bold; margin-bottom: 3px;">${log}</div>`;
+          })
+          .join("");
+      }
+
+      function getPriceMod(rep) {
+        if (rep >= 19) return -5;
+        if (rep >= 15) return -4;
+        if (rep >= 11) return -3;
+        if (rep >= 7) return -2;
+        if (rep >= 3) return -1;
+        if (rep <= -19) return 5;
+        if (rep <= -15) return 4;
+        if (rep <= -11) return 3;
+        if (rep <= -7) return 2;
+        if (rep <= -3) return 1;
+        return 0;
+      }
+
+      function unlockItem() {
+        const inputId = parseInt(document.getElementById("unlockInput").value);
+        if (!inputId || isNaN(inputId))
+          return alert("아이템 번호를 입력해주세요.");
+
+        const item = itemDB.find((i) => i.id === inputId);
+        if (!item) return alert("해당 번호의 아이템 데이터가 없습니다.");
+
+        if (state.unlockedItems.includes(inputId))
+          return alert("이미 상점에 추가된 아이템입니다.");
+
+        state.unlockedItems.push(inputId);
+        document.getElementById("unlockInput").value = "";
+        updateStorage();
+        render();
+        alert(`[#${item.id}] ${item.name} 아이템이 상점에 추가되었습니다!`);
+      }
+
+      function removeUnlock(id) {
+        if (confirm(`상점에서 이 아이템 해금을 취소하시겠습니까?`)) {
+          state.unlockedItems = state.unlockedItems.filter((i) => i !== id);
+          updateStorage();
+          render();
+        }
+      }
+
+      let currentShopSlot = null;
+
+      function openShop(slotKey) {
+        currentShopSlot = slotKey;
+        const shopList = document.getElementById("shopList");
+        const shopContainer = document.getElementById("shopContainer");
+        const title = document.getElementById("shopTitle");
+
+        let html = "";
+        const mod = getPriceMod(state.reputation);
+
+        const availableItems = itemDB.filter(
+          (i) =>
+            i.slot === slotKey &&
+            (i.pro <= state.prosperity || state.unlockedItems.includes(i.id)),
+        );
+
+        if (availableItems.length === 0) {
+          html += `<p style="color:#777; font-size:13px;">구매 가능한 아이템이 없습니다.</p>`;
+        } else {
+          availableItems.forEach((item) => {
+            // 🌟 아이템 보유 개수 체크 (최대 2개)
+            const ownedCount = state.ownedItems.filter(
+              (id) => id === item.id,
+            ).length;
+            const finalPrice = Math.max(1, item.price + mod);
+            const canAfford = state.gold >= finalPrice;
+
+            let btnHtml = "";
+
+            // 1개 이상 있으면 판매 버튼 추가
+            if (ownedCount > 0) {
+              const sellPrice = Math.floor(item.price / 2);
+              btnHtml += `<button class="btn-sell" onclick="sellItem(${item.id})">판매 (+${sellPrice}G)</button>`;
+            }
+
+            // 2개 미만이면 구매 버튼 추가
+            if (ownedCount < 2) {
+              btnHtml += `<button class="btn-buy" onclick="buyItem(${item.id}, ${finalPrice})" ${!canAfford ? "disabled" : ""}>${canAfford ? "구매" : "돈 부족"}</button>`;
+            }
+
+            html += `
+              <div class="shop-item" style="${ownedCount > 0 ? "background-color: #fdf0ef; border-color: #d9534f;" : ""}">
+                <div style="font-size:14px;">
+                  <strong style="${ownedCount > 0 ? "color:#d9534f;" : ""}">[#${item.id}] ${item.name}</strong> 
+                  ${ownedCount > 0 ? `<span style="color:#007bff; font-weight:bold; font-size:12px; margin-left:5px;">(보유: ${ownedCount}개)</span>` : ""}
+                  <br><span style="color:#666; font-size:12px;">원가: ${item.price}G / <b>최종가: <span style="color:#d9534f;">${finalPrice}G</span></b></span>
+                </div>
+                <div class="shop-btns">${btnHtml}</div>
+              </div>
+            `;
+          });
+        }
+
+        shopList.innerHTML = html;
+        const slotNames = {
+          head: "모자/투구",
+          body: "갑옷/망토",
+          hand: "무기/방패",
+          feet: "신발/장화",
+          small: "소형/물약",
+        };
+        title.innerText = `🛒 ${slotNames[slotKey]} 상점`;
+        shopContainer.style.display = "block";
+      }
+
+      function closeShop() {
+        document.getElementById("shopContainer").style.display = "none";
+        currentShopSlot = null;
+      }
+
+      // 🌟 구매 로직 (2개 제한 체크)
+      function buyItem(itemId, finalPrice) {
+        if (state.gold < finalPrice) return alert("골드가 부족합니다.");
+        const ownedCount = state.ownedItems.filter(
+          (id) => id === itemId,
+        ).length;
+        if (ownedCount >= 2)
+          return alert("같은 아이템은 최대 2개까지만 보유할 수 있습니다.");
+
+        const item = itemDB.find((i) => i.id === itemId);
+        state.gold -= finalPrice;
+        state.ownedItems.push(itemId);
+
+        appendLog(
+          "goldLogs",
+          `-${finalPrice} (구매: ${item.name}) (총 ${state.gold})`,
+        );
+        updateStorage();
+        render();
+        openShop(currentShopSlot);
+      }
+
+      // 🌟 판매 로직 (배열에서 해당 아이템 ID를 1개만 제거)
+      function sellItem(itemId) {
+        const index = state.ownedItems.indexOf(itemId);
+        if (index > -1) {
+          const item = itemDB.find((i) => i.id === itemId);
+          const sellPrice = Math.floor(item.price / 2);
+
+          state.gold += sellPrice;
+          state.ownedItems.splice(index, 1); // 1개만 삭제
+
+          appendLog(
+            "goldLogs",
+            `+${sellPrice} (판매: ${item.name}) (총 ${state.gold})`,
+          );
+          updateStorage();
+          render();
+          openShop(currentShopSlot);
+        }
+      }
+
       function updateStorage() {
-        localStorage.setItem("gloomHelperV19", JSON.stringify(state));
+        localStorage.setItem("gloomHelperV23", JSON.stringify(state));
       }
 
       function loadData() {
-        const saved = localStorage.getItem("gloomHelperV19");
+        const saved =
+          localStorage.getItem("gloomHelperV23") ||
+          localStorage.getItem("gloomHelperV22") ||
+          localStorage.getItem("gloomHelperV21") ||
+          localStorage.getItem("gloomHelperV20");
         if (saved) {
-          state = JSON.parse(saved);
+          const parsed = JSON.parse(saved);
+          state = { ...state, ...parsed };
+          if (!state.xpLogs) state.xpLogs = [];
+          if (!state.goldLogs) state.goldLogs = [];
+          if (state.prosperity === undefined) state.prosperity = 1;
+          if (state.reputation === undefined) state.reputation = 0;
+          if (!state.unlockedItems) state.unlockedItems = [];
+          if (!state.ownedItems) state.ownedItems = [];
+
           document.getElementById("classSelect").value = state.classId;
         }
         render();
@@ -579,11 +1120,14 @@
 
       function syncFromUI() {
         state.name = document.getElementById("charName").value;
-        state.xpMemo = document.getElementById("xpMemo").value;
-        state.goldMemo = document.getElementById("goldMemo").value;
+        state.prosperity =
+          parseInt(document.getElementById("prosperity").value) || 1;
+        state.reputation =
+          parseInt(document.getElementById("reputation").value) || 0;
         state.items = document.getElementById("items").value;
         state.memo = document.getElementById("memo").value;
         updateStorage();
+        render();
       }
 
       function changeClass() {
@@ -633,7 +1177,7 @@
       function resetCharacter() {
         if (
           confirm(
-            "정말 이 캐릭터를 초기화하시겠습니까?\n경험치, 금화, 아이템, 메모 등 모든 정보가 삭제됩니다.",
+            "정말 이 캐릭터를 초기화하시겠습니까? 모든 정보가 삭제됩니다.",
           )
         ) {
           state = {
@@ -643,11 +1187,15 @@
             gold: 0,
             checkList: [],
             bonusPerks: 0,
-            xpMemo: "",
-            goldMemo: "",
             items: "",
             checkedPerks: [],
             memo: "",
+            xpLogs: [],
+            goldLogs: [],
+            prosperity: 1,
+            reputation: 0,
+            ownedItems: [],
+            unlockedItems: [],
           };
           updateStorage();
           render();
@@ -676,11 +1224,19 @@
         const reader = new FileReader();
         reader.onload = function (e) {
           try {
-            state = JSON.parse(e.target.result);
+            const parsed = JSON.parse(e.target.result);
+            state = { ...state, ...parsed };
+            if (!state.xpLogs) state.xpLogs = [];
+            if (!state.goldLogs) state.goldLogs = [];
+            if (state.prosperity === undefined) state.prosperity = 1;
+            if (state.reputation === undefined) state.reputation = 0;
+            if (!state.ownedItems) state.ownedItems = [];
+            if (!state.unlockedItems) state.unlockedItems = [];
+
             document.getElementById("classSelect").value = state.classId;
             updateStorage();
             render();
-            alert("데이터가 성공적으로 복구되었습니다!");
+            alert("데이터 복구 완료!");
           } catch (err) {
             alert("잘못된 백업 파일입니다.");
           }
@@ -704,16 +1260,56 @@
 
         document.getElementById("charName").value = state.name;
         document.getElementById("levelDisplay").innerText = currentLevel;
+        document.getElementById("prosperity").value = state.prosperity;
+        document.getElementById("reputation").value = state.reputation;
+
         document.getElementById("xpDisplay").innerText = state.xp;
         document.getElementById("goldDisplay").innerText = state.gold;
         document.getElementById("checkCountDisplay").innerText =
           state.checkList.length;
         document.getElementById("bonusPerkDisplay").innerText =
           state.bonusPerks;
-        document.getElementById("xpMemo").value = state.xpMemo;
-        document.getElementById("goldMemo").value = state.goldMemo;
         document.getElementById("items").value = state.items;
         document.getElementById("memo").value = state.memo || "";
+
+        // 🌟 로그에 색상 적용
+        renderLogs(state.xpLogs, "xpLog");
+        renderLogs(state.goldLogs, "goldLog");
+
+        const unlockedListEl = document.getElementById("unlockedList");
+        if (state.unlockedItems.length > 0) {
+          unlockedListEl.innerHTML = state.unlockedItems
+            .map((id) => {
+              const item = itemDB.find((i) => i.id === id);
+              return item
+                ? `<div class="unlock-badge">[#${item.id}] ${item.name} <span onclick="removeUnlock(${item.id})">✖</span></div>`
+                : "";
+            })
+            .join("");
+        } else {
+          unlockedListEl.innerHTML =
+            '<span style="font-size:11px; color:#999;">해금된 추가 아이템이 없습니다.</span>';
+        }
+
+        const slots = ["head", "body", "hand", "feet", "small"];
+        slots.forEach((slot) => {
+          const btn = document.getElementById(`slot-${slot}`);
+          const span = document.getElementById(`eq-${slot}`);
+
+          const itemsInSlot = state.ownedItems
+            .map((id) => itemDB.find((i) => i.id === id))
+            .filter((item) => item && item.slot === slot);
+
+          if (itemsInSlot.length > 0) {
+            span.innerHTML = itemsInSlot
+              .map((i) => `[#${i.id}] ${i.name}`)
+              .join("<br>");
+            btn.classList.add("slot-filled");
+          } else {
+            span.innerHTML = "없음";
+            btn.classList.remove("slot-filled");
+          }
+        });
 
         const perkEl = document.getElementById("availablePerks");
         perkEl.innerText = availablePerks;
@@ -723,12 +1319,7 @@
         xpTrackContainer.innerHTML = "";
         for (let i = 1; i <= 9; i++) {
           const isCurrent = i === currentLevel ? "active" : "";
-          xpTrackContainer.innerHTML += `
-        <div class="xp-box ${isCurrent}">
-          <div class="lvl">Lv.${i}</div>
-          <div class="req">${xpTable[i - 1]}</div>
-        </div>
-      `;
+          xpTrackContainer.innerHTML += `<div class="xp-box ${isCurrent}"><div class="lvl">Lv.${i}</div><div class="req">${xpTable[i - 1]}</div></div>`;
         }
 
         const checkGrid = document.getElementById("checkGrid");
@@ -761,11 +1352,11 @@
             boxesHtml += `<input type="checkbox" class="checkbox-large" onchange="togglePerk(${boxIndex})" ${isChecked}>`;
           }
           perkContainer.innerHTML += `
-        <label class="perk-label">
-          <div style="min-width: 60px;">${boxesHtml}</div>
-          <span style="display: flex; align-items: center; flex-wrap: wrap;">${perk.text}</span>
-        </label>
-      `;
+            <label class="perk-label">
+              <div style="min-width: 60px;">${boxesHtml}</div>
+              <span style="display: flex; align-items: center; flex-wrap: wrap;">${perk.text}</span>
+            </label>
+          `;
         });
       }
 
