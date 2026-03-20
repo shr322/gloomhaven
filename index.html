@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>글룸헤븐 헬퍼 V11 (백업 및 경험치 트랙 추가)</title>
+    <meta name="referrer" content="no-referrer" />
+    <title>글룸헤븐 헬퍼 V12 (초기화 및 엑박 수정)</title>
     <style>
       body {
         font-family: sans-serif;
@@ -80,7 +81,6 @@
         line-height: 1.4;
       }
 
-      /* 경험치 트랙 스타일 */
       .xp-track {
         display: flex;
         overflow-x: auto;
@@ -117,7 +117,6 @@
         color: #d9534f;
       }
 
-      /* 백업 버튼 스타일 */
       .action-btn {
         padding: 12px 10px;
         font-size: 14px;
@@ -139,11 +138,18 @@
         background-color: #f0ad4e;
         margin-left: 5px;
       }
+      .btn-red {
+        background-color: #d9534f;
+        width: 100%;
+      }
       .btn-green:active {
         background-color: #45a049;
       }
       .btn-orange:active {
         background-color: #ec971f;
+      }
+      .btn-red:active {
+        background-color: #c9302c;
       }
     </style>
   </head>
@@ -286,11 +292,11 @@
     </div>
 
     <div class="box">
-      <h3>💾 데이터 백업 및 복구</h3>
+      <h3>💾 데이터 관리</h3>
       <p style="font-size: 12px; color: gray; margin-top: 0">
-        진행 상황을 파일로 다운로드하거나 다시 불러옵니다.
+        진행 상황 백업/복구 및 캐릭터 초기화
       </p>
-      <div class="row" style="margin-bottom: 0">
+      <div class="row">
         <button class="action-btn btn-green" onclick="exportData()">
           📥 백업 (다운로드)
         </button>
@@ -304,6 +310,11 @@
           style="display: none"
           onchange="importData(event)"
         />
+      </div>
+      <div class="row" style="margin-bottom: 0; margin-top: 10px">
+        <button class="action-btn btn-red" onclick="resetCharacter()">
+          🗑️ 모든 데이터 초기화
+        </button>
       </div>
     </div>
 
@@ -334,6 +345,7 @@
         '<img src="https://i.namu.wiki/i/cK9Rv9EaWifnmaoFZhPF3qI1R8luv3FoIqemhlWI3TjEEiW0ohrXZUEYps0MaXs55d-qNUWDiDi8axgav3TlTw.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
       const imgRoll =
         '<img src="https://i.namu.wiki/i/_pBVcJP89KjMR8l5yIKb5CndksfZFPVXtb4xKMY8DcRqmM9gnH5aBuQGqviOQZMqPm_rOcfCy-3JhnqjnZYzbw.png" style="height:20px;vertical-align:middle;margin:0 2px;">';
+
       const imgPush =
         '<img src="https://i.namu.wiki/i/usrn3epgrFV-6oj6fxtuF8frrg9tVpE9ThKPl-QE16W1YYgIp-USbTyPaByaFeQGWTGhVKH9f0bB38g4C4HmgA.png" style="height:20px;vertical-align:middle;margin:0 2px;">';
       const imgPull =
@@ -487,7 +499,7 @@
           },
           { text: `${imgRoll} 기절 ${imgStun} 카드 1장 추가`, count: 1 },
           {
-            text: `${imgRoll} 무장해제 ${imgDisarm} 카드 1장과 ${imgRoll} 혼란 ${imgMuddle} 카드 1장 추가`,
+            text: `${imgRoll} 무장해제 ${imgDisarm} 카드 1장 및 ${imgRoll} 혼란 ${imgMuddle} 카드 1장 추가`,
             count: 1,
           },
           { text: "부정적 시나리오 효과 무시", count: 1 },
@@ -554,7 +566,7 @@
       };
 
       function loadData() {
-        const saved = localStorage.getItem("gloomHelperV11");
+        const saved = localStorage.getItem("gloomHelperV12");
         if (saved) {
           state = JSON.parse(saved);
           document.getElementById("classSelect").value = state.classId;
@@ -568,7 +580,7 @@
         state.goldMemo = document.getElementById("goldMemo").value;
         state.items = document.getElementById("items").value;
         state.memo = document.getElementById("memo").value;
-        localStorage.setItem("gloomHelperV11", JSON.stringify(state));
+        localStorage.setItem("gloomHelperV12", JSON.stringify(state));
         render();
       }
 
@@ -612,7 +624,28 @@
         saveData();
       }
 
-      // 🌟 백업 기능 (파일 다운로드)
+      // 🌟 모든 데이터 초기화 기능
+      function resetCharacter() {
+        if (
+          confirm(
+            "정말 이 캐릭터를 초기화하시겠습니까?\n경험치, 금화, 아이템, 특혜 등 모든 정보가 삭제됩니다.",
+          )
+        ) {
+          state.name = "";
+          state.xp = 0;
+          state.gold = 0;
+          state.checkList = [];
+          state.bonusPerks = 0;
+          state.xpMemo = "";
+          state.goldMemo = "";
+          state.items = "";
+          state.memo = "";
+          state.checkedPerks = [];
+          saveData();
+          alert("데이터가 모두 초기화되었습니다.");
+        }
+      }
+
       function exportData() {
         const dataStr = JSON.stringify(state);
         const blob = new Blob([dataStr], { type: "application/json" });
@@ -627,7 +660,6 @@
         URL.revokeObjectURL(url);
       }
 
-      // 🌟 복구 기능 (파일 불러오기)
       function importData(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -677,7 +709,6 @@
         document.getElementById("items").value = state.items;
         document.getElementById("memo").value = state.memo || "";
 
-        // 🌟 직관적인 1~9레벨 경험치 트랙 렌더링
         const xpTrackContainer = document.getElementById("xpTrackContainer");
         xpTrackContainer.innerHTML = "";
         for (let i = 1; i <= 9; i++) {
