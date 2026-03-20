@@ -3,15 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>글룸헤븐 헬퍼 V18 (로컬 이미지 전용본)</title>
+    <meta name="color-scheme" content="light" />
+
+    <meta property="og:title" content="글룸헤이븐 종이">
+    <meta property="og:description" content="우리 파티만의 글룸헤이븐 캐릭터 종이 대체">
+    <meta property="og:image" content="thum.jpg" />
+    <link rel="icon" type="image/png" href="thum.jpg">
+
+    <title>글룸헤븐 종이 대체</title>
     <style>
+      /* 🌟 시스템 설정 무시하고 라이트모드 색상으로 완전 고정 */
+      :root {
+        color-scheme: light;
+      }
       body {
         font-family: sans-serif;
         padding: 10px;
         background-color: #f4f4f4;
+        color: #333;
       }
       .box {
         background: white;
+        color: #333;
         padding: 15px;
         margin-bottom: 10px;
         border-radius: 8px;
@@ -21,6 +34,7 @@
       h3 {
         margin-top: 0;
         margin-bottom: 10px;
+        color: #111;
       }
       .row {
         display: flex;
@@ -32,6 +46,7 @@
         padding: 10px;
         font-size: 14px;
         font-weight: bold;
+        color: #333;
         border: none;
         border-radius: 5px;
         background-color: #e0e0e0;
@@ -55,6 +70,9 @@
         padding: 8px;
         font-size: 14px;
         margin-top: 5px;
+        background-color: #fff;
+        color: #333;
+        border: 1px solid #ccc;
       }
       .highlight {
         color: #d9534f;
@@ -78,6 +96,7 @@
         margin-bottom: 12px;
         font-size: 14px;
         line-height: 1.4;
+        color: #333;
       }
 
       .xp-track {
@@ -96,6 +115,7 @@
         width: 45px;
         font-size: 12px;
         background: #fff;
+        color: #333;
       }
       .xp-box.active {
         border-color: #d9534f;
@@ -237,7 +257,7 @@
           >0</span
         >/18)
       </h3>
-      <p style="font-size: 12px; color: gray">
+      <p style="font-size: 12px; color: #777">
         3개 달성 시 특혜 1개가 자동으로 추가됩니다.
       </p>
       <div id="checkGrid" style="text-align: center"></div>
@@ -255,7 +275,11 @@
         <div>
           <button
             onclick="updateVal('bonusPerks', -1)"
-            style="padding: 5px 10px"
+            style="
+              padding: 5px 10px;
+              border: 1px solid #ccc;
+              background: #e0e0e0;
+            "
           >
             -
           </button>
@@ -264,7 +288,11 @@
           >
           <button
             onclick="updateVal('bonusPerks', 1)"
-            style="padding: 5px 10px"
+            style="
+              padding: 5px 10px;
+              border: 1px solid #ccc;
+              background: #e0e0e0;
+            "
           >
             +
           </button>
@@ -292,7 +320,7 @@
 
     <div class="box">
       <h3>💾 데이터 관리</h3>
-      <p style="font-size: 12px; color: gray; margin-top: 0">
+      <p style="font-size: 12px; color: #777; margin-top: 0">
         진행 상황 백업/복구 및 캐릭터 초기화
       </p>
       <div class="row">
@@ -320,12 +348,10 @@
     <script>
       const xpTable = [0, 45, 95, 150, 210, 275, 345, 420, 500];
 
-      // 🌟 형님이 올려주신 파일명 + 확장자에 맞춰서 완벽하게 세팅했습니다!
       function mkImg(fileName) {
         return `<img src="${fileName}" style="height:20px;vertical-align:middle;margin:0 2px;" alt="${fileName}">`;
       }
 
-      // 숫자/기호 모디파이어 (jpg, png)
       const imgM1 = mkImg("-1.jpg");
       const imgM2 = mkImg("-2.jpg");
       const imgP0 = mkImg("+0.jpg");
@@ -334,14 +360,12 @@
       const imgP3 = mkImg("+3.jpg");
       const imgRoll = mkImg("굴림.png");
 
-      // 무법자, 점술사 등 전용 기호 연결 (일반 기호와 동일하게 처리)
       const imgM2_W = imgM2;
       const imgN1 = imgM1;
       const imgN2 = imgM2;
       const imgP00_W = imgP0;
       const imgP2_W = imgP2;
 
-      // 원소, 상태이상, 전투 등 한글 파일명 적용
       const imgPush = mkImg("밀기.png");
       const imgPull = mkImg("당기기.png");
       const imgPierce = mkImg("관통.png");
@@ -362,7 +386,7 @@
       const imgAir = mkImg("공기.jpg");
       const imgLight = mkImg("빛.jpg");
       const imgDark = mkImg("어둠.jpg");
-      const imgRegen = mkImg("복원.png"); // 점술사 대비용 추가
+      const imgRegen = mkImg("복원.png");
 
       const classData = {
         scoundrel: [
@@ -541,11 +565,11 @@
       };
 
       function updateStorage() {
-        localStorage.setItem("gloomHelperV18", JSON.stringify(state));
+        localStorage.setItem("gloomHelperV19", JSON.stringify(state));
       }
 
       function loadData() {
-        const saved = localStorage.getItem("gloomHelperV18");
+        const saved = localStorage.getItem("gloomHelperV19");
         if (saved) {
           state = JSON.parse(saved);
           document.getElementById("classSelect").value = state.classId;
