@@ -1,0 +1,734 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>글룸헤븐 헬퍼 V11 (백업 및 경험치 트랙 추가)</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 10px;
+        background-color: #f4f4f4;
+      }
+      .box {
+        background: white;
+        padding: 15px;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      h2,
+      h3 {
+        margin-top: 0;
+        margin-bottom: 10px;
+      }
+      .row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      .btn-group button {
+        padding: 10px;
+        font-size: 14px;
+        font-weight: bold;
+        border: none;
+        border-radius: 5px;
+        background-color: #e0e0e0;
+        cursor: pointer;
+        margin-right: 5px;
+        flex: 1;
+      }
+      .btn-group {
+        display: flex;
+        width: 100%;
+        justify-content: space-between;
+      }
+      .btn-group button:active {
+        background-color: #ccc;
+      }
+      textarea,
+      input[type="text"],
+      select {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 8px;
+        font-size: 14px;
+        margin-top: 5px;
+      }
+      .highlight {
+        color: #d9534f;
+        font-weight: bold;
+      }
+      .checkbox-large {
+        transform: scale(1.4);
+        margin: 0 6px;
+        cursor: pointer;
+      }
+      .check-group {
+        display: inline-block;
+        background: #eee;
+        padding: 5px 10px;
+        border-radius: 5px;
+        margin: 5px;
+      }
+      .perk-label {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+        font-size: 14px;
+        line-height: 1.4;
+      }
+
+      /* 경험치 트랙 스타일 */
+      .xp-track {
+        display: flex;
+        overflow-x: auto;
+        gap: 8px;
+        padding: 5px 0;
+        margin-top: 10px;
+      }
+      .xp-box {
+        flex: 0 0 auto;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        text-align: center;
+        padding: 6px;
+        width: 45px;
+        font-size: 12px;
+        background: #fff;
+      }
+      .xp-box.active {
+        border-color: #d9534f;
+        background: #fdf0ef;
+        font-weight: bold;
+        color: #d9534f;
+        border-width: 2px;
+      }
+      .xp-box .lvl {
+        font-size: 14px;
+        margin-bottom: 2px;
+      }
+      .xp-box .req {
+        color: #777;
+        font-size: 11px;
+      }
+      .xp-box.active .req {
+        color: #d9534f;
+      }
+
+      /* 백업 버튼 스타일 */
+      .action-btn {
+        padding: 12px 10px;
+        font-size: 14px;
+        font-weight: bold;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        text-align: center;
+        flex: 1;
+        display: inline-block;
+        box-sizing: border-box;
+        color: white;
+      }
+      .btn-green {
+        background-color: #4caf50;
+        margin-right: 5px;
+      }
+      .btn-orange {
+        background-color: #f0ad4e;
+        margin-left: 5px;
+      }
+      .btn-green:active {
+        background-color: #45a049;
+      }
+      .btn-orange:active {
+        background-color: #ec971f;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="box">
+      <h3>🎭 클래스 선택</h3>
+      <select id="classSelect" onchange="changeClass()">
+        <option value="scoundrel">무법자</option>
+        <option value="brute">야만인</option>
+        <option value="tinkerer">땜장이</option>
+        <option value="spellweaver">주문직인</option>
+        <option value="cragheart">바위심장</option>
+        <option value="mindthief">정신도둑</option>
+        <option value="diviner">점술사</option>
+      </select>
+    </div>
+
+    <div class="box">
+      <div class="row">
+        <span style="white-space: nowrap; margin-right: 10px">이름:</span>
+        <input
+          type="text"
+          id="charName"
+          onchange="saveData()"
+          placeholder="캐릭터 이름"
+        />
+      </div>
+      <div class="row" style="margin-bottom: 0">
+        <span
+          >현재 레벨:
+          <strong id="levelDisplay" class="highlight" style="font-size: 18px"
+            >1</strong
+          ></span
+        >
+      </div>
+      <div class="xp-track" id="xpTrackContainer"></div>
+    </div>
+
+    <div class="box">
+      <h3>⭐ 경험치 (XP): <span id="xpDisplay" class="highlight">0</span></h3>
+      <div class="btn-group">
+        <button onclick="updateVal('xp', -5)">- 5</button>
+        <button onclick="updateVal('xp', -1)">- 1</button>
+        <button onclick="updateVal('xp', 1)">+ 1</button>
+        <button onclick="updateVal('xp', 5)">+ 5</button>
+      </div>
+      <textarea
+        id="xpMemo"
+        rows="2"
+        placeholder="경험치 획득 메모..."
+        onchange="saveData()"
+      ></textarea>
+    </div>
+
+    <div class="box">
+      <h3>💰 금화: <span id="goldDisplay" class="highlight">0</span></h3>
+      <div class="btn-group">
+        <button onclick="updateVal('gold', -5)">- 5</button>
+        <button onclick="updateVal('gold', -1)">- 1</button>
+        <button onclick="updateVal('gold', 1)">+ 1</button>
+        <button onclick="updateVal('gold', 5)">+ 5</button>
+      </div>
+      <textarea
+        id="goldMemo"
+        rows="2"
+        placeholder="금화 획득 메모..."
+        onchange="saveData()"
+      ></textarea>
+    </div>
+
+    <div class="box">
+      <h3>🎒 획득 아이템</h3>
+      <textarea
+        id="items"
+        rows="4"
+        placeholder="획득한 아이템 입력..."
+        onchange="saveData()"
+      ></textarea>
+    </div>
+
+    <div class="box">
+      <h3>
+        ✅ 전투 목표 / 이벤트 체크 (<span
+          id="checkCountDisplay"
+          class="highlight"
+          >0</span
+        >/18)
+      </h3>
+      <p style="font-size: 12px; color: gray">
+        3개 달성 시 특혜 1개가 자동으로 추가됩니다.
+      </p>
+      <div id="checkGrid" style="text-align: center"></div>
+
+      <div
+        class="row"
+        style="
+          margin-top: 15px;
+          background: #fafafa;
+          padding: 10px;
+          border-radius: 5px;
+        "
+      >
+        <span>은퇴 보상 등 추가 특혜 (수동):</span>
+        <div>
+          <button
+            onclick="updateVal('bonusPerks', -1)"
+            style="padding: 5px 10px"
+          >
+            -
+          </button>
+          <span id="bonusPerkDisplay" style="margin: 0 10px; font-weight: bold"
+            >0</span
+          >
+          <button
+            onclick="updateVal('bonusPerks', 1)"
+            style="padding: 5px 10px"
+          >
+            +
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="box">
+      <h3>
+        🌟 특혜 (찍을 수 있는 횟수:
+        <span id="availablePerks" class="highlight">0</span>)
+      </h3>
+      <div id="perkContainer"></div>
+    </div>
+
+    <div class="box">
+      <h3>📝 자유 메모</h3>
+      <textarea
+        id="memo"
+        rows="3"
+        placeholder="기타 진행 상황 메모..."
+        onchange="saveData()"
+      ></textarea>
+    </div>
+
+    <div class="box">
+      <h3>💾 데이터 백업 및 복구</h3>
+      <p style="font-size: 12px; color: gray; margin-top: 0">
+        진행 상황을 파일로 다운로드하거나 다시 불러옵니다.
+      </p>
+      <div class="row" style="margin-bottom: 0">
+        <button class="action-btn btn-green" onclick="exportData()">
+          📥 백업 (다운로드)
+        </button>
+        <label for="importFile" class="action-btn btn-orange"
+          >📤 복구 (불러오기)</label
+        >
+        <input
+          type="file"
+          id="importFile"
+          accept=".json"
+          style="display: none"
+          onchange="importData(event)"
+        />
+      </div>
+    </div>
+
+    <script>
+      const xpTable = [0, 45, 95, 150, 210, 275, 345, 420, 500];
+
+      const imgM1 =
+        '<img src="https://i.namu.wiki/i/ZSrEpRW58OXWwn0Uafr5aFnV_LKxpHRuM9OYCvBFn9X0Y90g9fjjwLyUKqhc3hZvc12mv5WW2W602VxjRBOXBA.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
+      const imgM2 =
+        '<img src="https://i.namu.wiki/i/nn-8vO5PCsh08Kjqz5zTYYvIeCV6f1kkZU-qjfSDyXN5Z8tfJG8sCIRZ5KKcrXiRoPrSV6ExAvO_bSg0e5hq6w.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
+      const imgM2_W =
+        '<img src="https://i.namu.wiki/i/EoM-wGQWuR8oIzpvJMWGr5lgyfoGBLk3ncDkDZTrPg9aVAyy48EPhUH8dVvV0COo6Dh-b_Yv5c-OzfEYJZ-G6g.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
+      const imgN1 =
+        '<img src="https://i.namu.wiki/i/SrjeUo8AZEN1cU5dYu6n2GYArAKE3rtbPRnqLelav3GNsLGpmsiayeFOqPQA_OpSpLbHUnHfzhZ6w-bqKrvpXA.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
+      const imgN2 =
+        '<img src="https://i.namu.wiki/i/nn-8vO5PCsh08Kjqz5zTYYvIeCV6f1kkZU-qjfSDyXN5Z8tfJG8sCIRZ5KKcrXiRoPrSV6ExAvO_bSg0e5hq6w.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
+      const imgP0 =
+        '<img src="https://i.namu.wiki/i/bftmpRVXNu58bzjWePZRsY_4DPhwS0O1zOm_jjYEwO1sGxkB7nBnofnFg47PLyd0SdbEkLjdnOdPNGsN2gEVRg.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
+      const imgP00_W =
+        '<img src="https://i.namu.wiki/i/vUTZ5k9MUJSnqvEs9hPMfkBC3bqfkI9p6joLz7onOLGqC43YL26TEnelG8Y0TMTVcDzHN5zkqaGCC4ueR_2e4w.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
+      const imgP1 =
+        '<img src="https://i.namu.wiki/i/f4vhUhd1dIxZEaI9wDzY82nni5CHqgc2rOf3sxl5SLmSOlA45Bk5aV3mMaMEvNlRCJmpha_9CFSDmUBhNNEmzA.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
+      const imgP2 =
+        '<img src="https://i.namu.wiki/i/hCRdp7AXy6JUkHyJLPM1AV-ZwLJ8y_CXdoQjGkU2deJsPdG0szEADcWS53a1jjXX1YGrkEugGpOppyp-NkAxDA.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
+      const imgP2_W =
+        '<img src="https://i.namu.wiki/i/DRbVxjlLXg9A3hvYCSSFZZaInbAahhx-IjtZy142_iTlvBSY7lNUWXvaesgPHwt-8LkISQB-LB0oQuM4ywGBig.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
+      const imgP3 =
+        '<img src="https://i.namu.wiki/i/cK9Rv9EaWifnmaoFZhPF3qI1R8luv3FoIqemhlWI3TjEEiW0ohrXZUEYps0MaXs55d-qNUWDiDi8axgav3TlTw.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
+      const imgRoll =
+        '<img src="https://i.namu.wiki/i/_pBVcJP89KjMR8l5yIKb5CndksfZFPVXtb4xKMY8DcRqmM9gnH5aBuQGqviOQZMqPm_rOcfCy-3JhnqjnZYzbw.png" style="height:20px;vertical-align:middle;margin:0 2px;">';
+      const imgPush =
+        '<img src="https://i.namu.wiki/i/usrn3epgrFV-6oj6fxtuF8frrg9tVpE9ThKPl-QE16W1YYgIp-USbTyPaByaFeQGWTGhVKH9f0bB38g4C4HmgA.png" style="height:20px;vertical-align:middle;margin:0 2px;">';
+      const imgPull =
+        '<img src="https://i.namu.wiki/i/pYQxjQnnMfrLBFUVt8HEMVIy5XaNS30C272gPhfYP9RMyCNlxaHQuP0I6xLEME2SyfGsjAAPGOE3chI_AWTwLA.png" style="height:20px;vertical-align:middle;margin:0 2px;">';
+      const imgPierce =
+        '<img src="https://i.namu.wiki/i/S2I6En8rqRLJfkJphvoEZApi_7AFZx1q_lJBygola1Jx3NfMCzKpqWavcw8Qc0HtUkbNDsXcnGXrxBKXMlgU_A.png" style="height:20px;vertical-align:middle;margin:0 2px;">';
+      const imgStun =
+        '<img src="https://i.namu.wiki/i/3Xed56ulMg8CiMXMYMqmunHJgR43TTERVc2ZJ29WyKfsG5wZ2gqSaskHadUL8YLVLOFGxha532XiFm9L1QpSrw.png" style="height:20px;vertical-align:middle;margin:0 2px;">';
+      const imgDisarm =
+        '<img src="https://i.namu.wiki/i/VjUdaIwa56Q4rm6NkZ6jHPT5qAoxcnczDWhSNXq3w9LsvoIqJ39g6TJNwKHLi14lUd9Oi9lVjHGlpYFWDDiFJA.png" style="height:20px;vertical-align:middle;margin:0 2px;">';
+      const imgMuddle =
+        '<img src="https://i.namu.wiki/i/ggpxzn_E8hKPn8oBfaSRa_ccPSSE4VsLg9nWBSZ9dWTjr9inTwlwH8g7r_k44qe7ZlmODR2c9PcNzwHoZzfQ_A.png" style="height:20px;vertical-align:middle;margin:0 2px;">';
+      const imgTarget =
+        '<img src="https://i.namu.wiki/i/Udpc4joAXPntSkeoq1l1knsjFR-A0W67fz343tOPP1UsDJgv_nhxqJA8cOjWDzf3rUX4rQEen7KF6aXfCTzetQ.png" style="height:20px;vertical-align:middle;margin:0 2px;">';
+      const imgShield =
+        '<img src="https://i.namu.wiki/i/o24HYXLxtTsY-uMbEYK96nj1GY4ykfMKTDUCwH07i7d4Tu2hpNnTl4m8xO5XwVuKcXa1T-ZhJ-5MWH8GXp5mZw.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
+      const imgFire =
+        '<img src="https://i.namu.wiki/i/davOmnUZAWYd6mHm8VLCDjgGdxXjExiCAfnDQ3nEZFmUN2K4Bvx7ss2ZNaTIEzSdgeBZiIpdQO1BSatsTeDoBw.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
+      const imgWound =
+        '<img src="https://i.namu.wiki/i/EH7f-BVDuop4tCqXkyCIjiIHYmQrg8Vt32To34kIVDHpuuVK1d0GWeLGSF176yTyWfzKsjjdC9L6X_3LtC4dtg.png" style="height:20px;vertical-align:middle;margin:0 2px;">';
+      const imgImmobilize =
+        '<img src="https://i.namu.wiki/i/0O-5nr9YnjiAfhaW00DSB7diukYL5rcXq50eq7f6kFde29f3ns2qNmMG_7G_63Q6_jXp_YKUOXrm5ECk7e_s0w.png" style="height:20px;vertical-align:middle;margin:0 2px;">';
+      const imgHeal =
+        '<img src="https://i.namu.wiki/i/D4gVlq2A3BmnJOUzDpSHlXDT_me-KXEUpXAA-bYtnnMPr7o6mXG9_4hWT7Ipa01EmAhgQ-eJeppb_N4T6lWQVw.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
+      const imgCurse =
+        '<img src="https://i.namu.wiki/i/NzIIdeJ6H3htTArtcMmtoEIbPu64KKn4lBfWm6edfILDMTbaM_BAQXM0BzXHIcmHQ-olTwaCKZiT7u4e7ISEbA.png" style="height:20px;vertical-align:middle;margin:0 2px;">';
+      const imgIce =
+        '<img src="https://i.namu.wiki/i/0NHs8rYvxcni_hznX-mzmiaSkcn9WyGOj7p6GcSIIUvBw2rbLKiJlgVM4zCUT-uExV1FLS3yPOmFRzVkR3k7dA.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
+      const imgEarth =
+        '<img src="https://i.namu.wiki/i/uxDERYCyiJy6OFGS2nren_5Qjw0fIN42RvJJFHSGL953x6rSMaG_xUZgtOuC3rluvE_cw-cKfnoCti6yj4dDng.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
+      const imgAir =
+        '<img src="https://i.namu.wiki/i/xz1bvY4rdB7MBnnOyTvdy1_8eLOzU-hMWYTvBm-_jeFdPp6EGpqW-RNynbBW_tEEKsOasfWwVgqhzALsomYJeg.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
+      const imgLight =
+        '<img src="https://i.namu.wiki/i/fqMUAouPwU6nkA7FQGSZaHr07O-SOBW4vmh2M_A7QcJN4Ela23nOtxpWnf7DKPPmLLygIC9gJbtYm8hs84RJsQ.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
+      const imgDark =
+        '<img src="https://i.namu.wiki/i/apOnwkdSHbWcu5KYJJomYXP1WUdRI_radILy3UYAxcc1GFQE4abw2_CxGNaXf592DTGqfhi7bhenI6Tkf_At0Q.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
+      const imgPoison =
+        '<img src="https://i.namu.wiki/i/elegH3i275tovAcOrJpxaHZkVYQCQEKGeCHq6gHmPnoh4-maInMZeh2A50Zt4L6oEdLrNlah5oix7TwpN7Dong.png" style="height:20px;vertical-align:middle;margin:0 2px;">';
+      const imgInvisible =
+        '<img src="https://i.namu.wiki/i/vfrfyBcXD9Mz-rkTCsaqId1TFFRkDWlqKTQBPp4SMLWE7U2TEKWTIxcYsi19PeA3kQ5t7f_y4iqMTRznD7TWFw.png" style="height:20px;vertical-align:middle;margin:0 2px;">';
+      const imgRegen =
+        '<img src="https://i.namu.wiki/i/-gcs63C998Rc6PYhaQ7Ikss7J7M2eFLBPXId2SZUQpUPqUj8og8pHUF-hi-aWoPk35NyO-sh6BdhB4EszN4fEA.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
+
+      const classData = {
+        scoundrel: [
+          { text: `${imgM1} 카드 2장 제거`, count: 2 },
+          { text: `${imgP00_W} 카드 4장 제거`, count: 1 },
+          {
+            text: `${imgM2_W} 카드 1장을 ${imgP00_W} 카드 1장으로 교체`,
+            count: 1,
+          },
+          { text: `${imgM1} 카드 1장을 ${imgP1} 카드 1장으로 교체`, count: 1 },
+          {
+            text: `${imgP00_W} 카드 1장을 ${imgP2_W} 카드 1장으로 교체`,
+            count: 2,
+          },
+          { text: `${imgRoll} ${imgP1} 카드 2장 추가`, count: 2 },
+          { text: `${imgRoll} 관통 ${imgPierce} 3 카드 2장 추가`, count: 1 },
+          { text: `${imgRoll} 중독 ${imgPoison} 카드 2장 추가`, count: 2 },
+          { text: `${imgRoll} 혼란 ${imgMuddle} 카드 2장 추가`, count: 1 },
+          { text: `${imgRoll} 은신 ${imgInvisible} 카드 1장 추가`, count: 1 },
+          { text: "부정적 시나리오 효과 무시", count: 1 },
+        ],
+        brute: [
+          { text: `${imgM1} 카드 2장 제거`, count: 1 },
+          { text: `${imgM1} 카드 1장을 ${imgP1} 카드 1장으로 교체`, count: 1 },
+          { text: `${imgP1} 카드 2장 추가`, count: 2 },
+          { text: `${imgP3} 카드 1장 추가`, count: 1 },
+          { text: `${imgRoll} 밀기 ${imgPush} 1 카드 3장 추가`, count: 1 },
+          { text: `${imgRoll} 관통 ${imgPierce} 3 카드 2장 추가`, count: 1 },
+          { text: `${imgRoll} 기절 ${imgStun} 카드 1장 추가`, count: 1 },
+          {
+            text: `${imgRoll} 무장해제 ${imgDisarm} 카드 1장과 ${imgRoll} 혼란 ${imgMuddle} 카드 1장 추가`,
+            count: 1,
+          },
+          { text: `${imgRoll} 대상 추가 ${imgTarget} 카드 1장 추가`, count: 2 },
+          {
+            text: `${imgP1} 방어 ${imgShield} 1, 자신 카드 1장 추가`,
+            count: 1,
+          },
+          {
+            text: `부정적 아이템 효과 무시 및 ${imgP1} 카드 1장 추가`,
+            count: 1,
+          },
+        ],
+        tinkerer: [
+          { text: `${imgM1} 카드 2장 제거`, count: 2 },
+          { text: `${imgM2} 카드 1장을 ${imgP0} 카드 1장으로 교체`, count: 1 },
+          { text: `${imgP1} 카드 2장 추가`, count: 1 },
+          { text: `${imgP3} 카드 1장 추가`, count: 1 },
+          { text: `${imgRoll} ${imgFire} 카드 2장 추가`, count: 1 },
+          { text: `${imgRoll} 혼란 ${imgMuddle} 카드 3장 추가`, count: 1 },
+          { text: `${imgP1} 부상 ${imgWound} 카드 1장 추가`, count: 2 },
+          {
+            text: `${imgP1} 이동불가 ${imgImmobilize} 카드 1장 추가`,
+            count: 2,
+          },
+          { text: `${imgP1} 치료 ${imgHeal} 2 카드 1장 추가`, count: 2 },
+          { text: `${imgP0} 대상 추가 ${imgTarget} 카드 1장 추가`, count: 1 },
+          { text: "부정적 시나리오 효과 무시", count: 1 },
+        ],
+        spellweaver: [
+          { text: `${imgP0} 카드 4장 제거`, count: 1 },
+          { text: `${imgN1} 카드 1장을 ${imgP1} 카드 1장으로 교체`, count: 2 },
+          { text: `${imgP1} 카드 2장 추가`, count: 2 },
+          { text: `${imgP0} 기절 ${imgStun} 카드 1장 추가`, count: 1 },
+          { text: `${imgP1} 부상 ${imgWound} 카드 1장 추가`, count: 1 },
+          {
+            text: `${imgP1} 이동불가 ${imgImmobilize} 카드 1장 추가`,
+            count: 1,
+          },
+          { text: `${imgP1} 저주 ${imgCurse} 카드 1장 추가`, count: 1 },
+          { text: `${imgP2} ${imgFire} 카드 1장 추가`, count: 2 },
+          { text: `${imgP2} ${imgIce} 카드 1장 추가`, count: 2 },
+          {
+            text: `${imgRoll} ${imgEarth} 카드 1장과 ${imgRoll} ${imgAir} 카드 1장 추가`,
+            count: 1,
+          },
+          {
+            text: `${imgRoll} ${imgLight} 카드 1장과 ${imgRoll} ${imgDark} 카드 1장 추가`,
+            count: 1,
+          },
+        ],
+        cragheart: [
+          { text: `${imgP0} 카드 4장 제거`, count: 1 },
+          { text: `${imgN1} 카드 1장을 ${imgP1} 카드 1장으로 교체`, count: 3 },
+          { text: `${imgN2} 한 장과 ${imgP2} 카드 2장 추가`, count: 1 },
+          {
+            text: `${imgP1} 이동불가 ${imgImmobilize} 카드 1장 추가`,
+            count: 2,
+          },
+          { text: `${imgP2} 혼란 ${imgMuddle} 카드 1장 추가`, count: 2 },
+          { text: `${imgRoll} 밀기 ${imgPush} 2 카드 2장 추가`, count: 1 },
+          { text: `${imgRoll} ${imgEarth} 카드 2장 추가`, count: 2 },
+          { text: `${imgRoll} ${imgAir} 카드 2장 추가`, count: 1 },
+          { text: "부정적 아이템 효과 무시", count: 1 },
+          { text: "부정적 시나리오 효과 무시", count: 1 },
+        ],
+        mindthief: [
+          { text: `${imgN1} 카드 2장 제거`, count: 2 },
+          { text: `${imgP0} 카드 4장 제거`, count: 1 },
+          { text: `${imgP1} 카드 2장을 ${imgP2} 카드 2장으로 교체`, count: 1 },
+          { text: `${imgN2} 카드 1장을 ${imgP0} 카드 1장으로 교체`, count: 1 },
+          { text: `${imgP2} ${imgIce} 카드 1장 추가`, count: 2 },
+          { text: `${imgRoll} ${imgP1} 카드 2장 추가`, count: 2 },
+          { text: `${imgRoll} 당기기 ${imgPull} 1 카드 3장 추가`, count: 1 },
+          { text: `${imgRoll} 혼란 ${imgMuddle} 카드 3장 추가`, count: 1 },
+          {
+            text: `${imgRoll} 이동불가 ${imgImmobilize} 카드 2장 추가`,
+            count: 1,
+          },
+          { text: `${imgRoll} 기절 ${imgStun} 카드 1장 추가`, count: 1 },
+          {
+            text: `${imgRoll} 무장해제 ${imgDisarm} 카드 1장과 ${imgRoll} 혼란 ${imgMuddle} 카드 1장 추가`,
+            count: 1,
+          },
+          { text: "부정적 시나리오 효과 무시", count: 1 },
+        ],
+        diviner: [
+          { text: `${imgN1} 카드 2장 제거`, count: 2 },
+          { text: `${imgN2} 카드 1장 제거`, count: 1 },
+          {
+            text: `${imgP1} 카드 1장을 방어 ${imgShield} 1, 아군 하나에게 영향 카드 1장으로 교체`,
+            count: 2,
+          },
+          {
+            text: `${imgP0} 카드 1장을 방어 ${imgShield} 1, 아군 하나에게 영향 카드 1장으로 교체`,
+            count: 1,
+          },
+          {
+            text: `${imgP0} 카드 1장을 ${imgP2} ${imgDark} 카드 1장으로 교체`,
+            count: 1,
+          },
+          {
+            text: `${imgP0} 카드 1장을 ${imgP2} ${imgLight} 카드 1장으로 교체`,
+            count: 1,
+          },
+          {
+            text: `${imgP0} 카드 1장을 ${imgP2} 혼란 ${imgMuddle} 카드 1장으로 교체`,
+            count: 1,
+          },
+          {
+            text: `${imgP0} 카드 1장을 ${imgP2} 저주 ${imgCurse} 카드 1장으로 교체`,
+            count: 1,
+          },
+          {
+            text: `${imgP0} 카드 1장을 ${imgP2} 복원 ${imgRegen}, 자신 카드 1장으로 교체`,
+            count: 1,
+          },
+          {
+            text: `${imgN1} 카드 1장을 ${imgP1} 치료 ${imgHeal} 2, 아군 하나에게 영향 카드 1장으로 교체`,
+            count: 1,
+          },
+          {
+            text: `${imgRoll} 치료 ${imgHeal} 1, 자신 카드 2장 추가`,
+            count: 1,
+          },
+          { text: `${imgRoll} 저주 ${imgCurse} 카드 2장 추가`, count: 1 },
+          {
+            text: `부정적 시나리오 효과 무시 및 ${imgP1} 카드 2장 추가`,
+            count: 1,
+          },
+        ],
+      };
+
+      let state = {
+        classId: "scoundrel",
+        name: "",
+        xp: 0,
+        gold: 0,
+        checkList: [],
+        bonusPerks: 0,
+        xpMemo: "",
+        goldMemo: "",
+        items: "",
+        checkedPerks: [],
+        memo: "",
+      };
+
+      function loadData() {
+        const saved = localStorage.getItem("gloomHelperV11");
+        if (saved) {
+          state = JSON.parse(saved);
+          document.getElementById("classSelect").value = state.classId;
+        }
+        render();
+      }
+
+      function saveData() {
+        state.name = document.getElementById("charName").value;
+        state.xpMemo = document.getElementById("xpMemo").value;
+        state.goldMemo = document.getElementById("goldMemo").value;
+        state.items = document.getElementById("items").value;
+        state.memo = document.getElementById("memo").value;
+        localStorage.setItem("gloomHelperV11", JSON.stringify(state));
+        render();
+      }
+
+      function changeClass() {
+        const newClass = document.getElementById("classSelect").value;
+        if (
+          confirm(
+            "클래스를 변경하면 기존 특혜와 체크 정보가 초기화됩니다. 변경하시겠습니까?",
+          )
+        ) {
+          state.classId = newClass;
+          state.checkedPerks = [];
+          state.checkList = [];
+          saveData();
+        } else {
+          document.getElementById("classSelect").value = state.classId;
+        }
+      }
+
+      function updateVal(key, amount) {
+        state[key] += amount;
+        if (state[key] < 0) state[key] = 0;
+        saveData();
+      }
+
+      function toggleCheck(index) {
+        if (state.checkList.includes(index)) {
+          state.checkList = state.checkList.filter((i) => i !== index);
+        } else {
+          state.checkList.push(index);
+        }
+        saveData();
+      }
+
+      function togglePerk(index) {
+        if (state.checkedPerks.includes(index)) {
+          state.checkedPerks = state.checkedPerks.filter((i) => i !== index);
+        } else {
+          state.checkedPerks.push(index);
+        }
+        saveData();
+      }
+
+      // 🌟 백업 기능 (파일 다운로드)
+      function exportData() {
+        const dataStr = JSON.stringify(state);
+        const blob = new Blob([dataStr], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        const fileName = state.name
+          ? `gloomhaven_${state.name}.json`
+          : `gloomhaven_backup.json`;
+        a.download = fileName;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      // 🌟 복구 기능 (파일 불러오기)
+      function importData(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function (e) {
+          try {
+            state = JSON.parse(e.target.result);
+            document.getElementById("classSelect").value = state.classId;
+            saveData();
+            alert("데이터가 성공적으로 복구되었습니다!");
+          } catch (err) {
+            alert("잘못된 백업 파일입니다.");
+          }
+          document.getElementById("importFile").value = "";
+        };
+        reader.readAsText(file);
+      }
+
+      function render() {
+        let currentLevel = 1;
+        for (let i = 1; i < xpTable.length; i++) {
+          if (state.xp >= xpTable[i]) currentLevel = i + 1;
+        }
+
+        const totalEarnedPerks =
+          currentLevel -
+          1 +
+          Math.floor(state.checkList.length / 3) +
+          state.bonusPerks;
+        const availablePerks = totalEarnedPerks - state.checkedPerks.length;
+
+        document.getElementById("charName").value = state.name;
+        document.getElementById("levelDisplay").innerText = currentLevel;
+        document.getElementById("xpDisplay").innerText = state.xp;
+        document.getElementById("goldDisplay").innerText = state.gold;
+        document.getElementById("checkCountDisplay").innerText =
+          state.checkList.length;
+        document.getElementById("bonusPerkDisplay").innerText =
+          state.bonusPerks;
+
+        const perkEl = document.getElementById("availablePerks");
+        perkEl.innerText = availablePerks;
+        perkEl.style.color = availablePerks < 0 ? "red" : "#d9534f";
+
+        document.getElementById("xpMemo").value = state.xpMemo;
+        document.getElementById("goldMemo").value = state.goldMemo;
+        document.getElementById("items").value = state.items;
+        document.getElementById("memo").value = state.memo || "";
+
+        // 🌟 직관적인 1~9레벨 경험치 트랙 렌더링
+        const xpTrackContainer = document.getElementById("xpTrackContainer");
+        xpTrackContainer.innerHTML = "";
+        for (let i = 1; i <= 9; i++) {
+          const isCurrent = i === currentLevel ? "active" : "";
+          xpTrackContainer.innerHTML += `
+        <div class="xp-box ${isCurrent}">
+          <div class="lvl">Lv.${i}</div>
+          <div class="req">${xpTable[i - 1]}</div>
+        </div>
+      `;
+        }
+
+        const checkGrid = document.getElementById("checkGrid");
+        checkGrid.innerHTML = "";
+        for (let i = 0; i < 6; i++) {
+          let groupHtml = `<div class="check-group">`;
+          for (let j = 0; j < 3; j++) {
+            const checkIndex = i * 3 + j;
+            const isChecked = state.checkList.includes(checkIndex)
+              ? "checked"
+              : "";
+            groupHtml += `<input type="checkbox" class="checkbox-large" onchange="toggleCheck(${checkIndex})" ${isChecked}>`;
+          }
+          groupHtml += `</div>`;
+          checkGrid.innerHTML += groupHtml;
+        }
+
+        const perkContainer = document.getElementById("perkContainer");
+        perkContainer.innerHTML = "";
+        const currentClassPerks = classData[state.classId] || [];
+        let perkIndexCounter = 0;
+
+        currentClassPerks.forEach((perk) => {
+          let boxesHtml = "";
+          for (let i = 0; i < perk.count; i++) {
+            const boxIndex = perkIndexCounter++;
+            const isChecked = state.checkedPerks.includes(boxIndex)
+              ? "checked"
+              : "";
+            boxesHtml += `<input type="checkbox" class="checkbox-large" onchange="togglePerk(${boxIndex})" ${isChecked}>`;
+          }
+          perkContainer.innerHTML += `
+        <label class="perk-label">
+          <div style="min-width: 60px;">${boxesHtml}</div>
+          <span style="display: flex; align-items: center; flex-wrap: wrap;">${perk.text}</span>
+        </label>
+      `;
+        });
+      }
+
+      loadData();
+    </script>
+  </body>
+</html>
