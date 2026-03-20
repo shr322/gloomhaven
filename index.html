@@ -3,8 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="referrer" content="no-referrer" />
-    <title>글룸헤븐 헬퍼 V12 (초기화 및 엑박 수정)</title>
+    <title>글룸헤븐 헬퍼 V18 (로컬 이미지 전용본)</title>
     <style>
       body {
         font-family: sans-serif;
@@ -173,7 +172,7 @@
         <input
           type="text"
           id="charName"
-          onchange="saveData()"
+          onchange="syncFromUI()"
           placeholder="캐릭터 이름"
         />
       </div>
@@ -200,7 +199,7 @@
         id="xpMemo"
         rows="2"
         placeholder="경험치 획득 메모..."
-        onchange="saveData()"
+        onchange="syncFromUI()"
       ></textarea>
     </div>
 
@@ -216,7 +215,7 @@
         id="goldMemo"
         rows="2"
         placeholder="금화 획득 메모..."
-        onchange="saveData()"
+        onchange="syncFromUI()"
       ></textarea>
     </div>
 
@@ -226,7 +225,7 @@
         id="items"
         rows="4"
         placeholder="획득한 아이템 입력..."
-        onchange="saveData()"
+        onchange="syncFromUI()"
       ></textarea>
     </div>
 
@@ -287,7 +286,7 @@
         id="memo"
         rows="3"
         placeholder="기타 진행 상황 메모..."
-        onchange="saveData()"
+        onchange="syncFromUI()"
       ></textarea>
     </div>
 
@@ -321,73 +320,49 @@
     <script>
       const xpTable = [0, 45, 95, 150, 210, 275, 345, 420, 500];
 
-      const imgM1 =
-        '<img src="https://i.namu.wiki/i/ZSrEpRW58OXWwn0Uafr5aFnV_LKxpHRuM9OYCvBFn9X0Y90g9fjjwLyUKqhc3hZvc12mv5WW2W602VxjRBOXBA.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
-      const imgM2 =
-        '<img src="https://i.namu.wiki/i/nn-8vO5PCsh08Kjqz5zTYYvIeCV6f1kkZU-qjfSDyXN5Z8tfJG8sCIRZ5KKcrXiRoPrSV6ExAvO_bSg0e5hq6w.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
-      const imgM2_W =
-        '<img src="https://i.namu.wiki/i/EoM-wGQWuR8oIzpvJMWGr5lgyfoGBLk3ncDkDZTrPg9aVAyy48EPhUH8dVvV0COo6Dh-b_Yv5c-OzfEYJZ-G6g.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
-      const imgN1 =
-        '<img src="https://i.namu.wiki/i/SrjeUo8AZEN1cU5dYu6n2GYArAKE3rtbPRnqLelav3GNsLGpmsiayeFOqPQA_OpSpLbHUnHfzhZ6w-bqKrvpXA.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
-      const imgN2 =
-        '<img src="https://i.namu.wiki/i/nn-8vO5PCsh08Kjqz5zTYYvIeCV6f1kkZU-qjfSDyXN5Z8tfJG8sCIRZ5KKcrXiRoPrSV6ExAvO_bSg0e5hq6w.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
-      const imgP0 =
-        '<img src="https://i.namu.wiki/i/bftmpRVXNu58bzjWePZRsY_4DPhwS0O1zOm_jjYEwO1sGxkB7nBnofnFg47PLyd0SdbEkLjdnOdPNGsN2gEVRg.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
-      const imgP00_W =
-        '<img src="https://i.namu.wiki/i/vUTZ5k9MUJSnqvEs9hPMfkBC3bqfkI9p6joLz7onOLGqC43YL26TEnelG8Y0TMTVcDzHN5zkqaGCC4ueR_2e4w.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
-      const imgP1 =
-        '<img src="https://i.namu.wiki/i/f4vhUhd1dIxZEaI9wDzY82nni5CHqgc2rOf3sxl5SLmSOlA45Bk5aV3mMaMEvNlRCJmpha_9CFSDmUBhNNEmzA.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
-      const imgP2 =
-        '<img src="https://i.namu.wiki/i/hCRdp7AXy6JUkHyJLPM1AV-ZwLJ8y_CXdoQjGkU2deJsPdG0szEADcWS53a1jjXX1YGrkEugGpOppyp-NkAxDA.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
-      const imgP2_W =
-        '<img src="https://i.namu.wiki/i/DRbVxjlLXg9A3hvYCSSFZZaInbAahhx-IjtZy142_iTlvBSY7lNUWXvaesgPHwt-8LkISQB-LB0oQuM4ywGBig.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
-      const imgP3 =
-        '<img src="https://i.namu.wiki/i/cK9Rv9EaWifnmaoFZhPF3qI1R8luv3FoIqemhlWI3TjEEiW0ohrXZUEYps0MaXs55d-qNUWDiDi8axgav3TlTw.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
-      const imgRoll =
-        '<img src="https://i.namu.wiki/i/_pBVcJP89KjMR8l5yIKb5CndksfZFPVXtb4xKMY8DcRqmM9gnH5aBuQGqviOQZMqPm_rOcfCy-3JhnqjnZYzbw.png" style="height:20px;vertical-align:middle;margin:0 2px;">';
+      // 🌟 형님이 올려주신 파일명 + 확장자에 맞춰서 완벽하게 세팅했습니다!
+      function mkImg(fileName) {
+        return `<img src="${fileName}" style="height:20px;vertical-align:middle;margin:0 2px;" alt="${fileName}">`;
+      }
 
-      const imgPush =
-        '<img src="https://i.namu.wiki/i/usrn3epgrFV-6oj6fxtuF8frrg9tVpE9ThKPl-QE16W1YYgIp-USbTyPaByaFeQGWTGhVKH9f0bB38g4C4HmgA.png" style="height:20px;vertical-align:middle;margin:0 2px;">';
-      const imgPull =
-        '<img src="https://i.namu.wiki/i/pYQxjQnnMfrLBFUVt8HEMVIy5XaNS30C272gPhfYP9RMyCNlxaHQuP0I6xLEME2SyfGsjAAPGOE3chI_AWTwLA.png" style="height:20px;vertical-align:middle;margin:0 2px;">';
-      const imgPierce =
-        '<img src="https://i.namu.wiki/i/S2I6En8rqRLJfkJphvoEZApi_7AFZx1q_lJBygola1Jx3NfMCzKpqWavcw8Qc0HtUkbNDsXcnGXrxBKXMlgU_A.png" style="height:20px;vertical-align:middle;margin:0 2px;">';
-      const imgStun =
-        '<img src="https://i.namu.wiki/i/3Xed56ulMg8CiMXMYMqmunHJgR43TTERVc2ZJ29WyKfsG5wZ2gqSaskHadUL8YLVLOFGxha532XiFm9L1QpSrw.png" style="height:20px;vertical-align:middle;margin:0 2px;">';
-      const imgDisarm =
-        '<img src="https://i.namu.wiki/i/VjUdaIwa56Q4rm6NkZ6jHPT5qAoxcnczDWhSNXq3w9LsvoIqJ39g6TJNwKHLi14lUd9Oi9lVjHGlpYFWDDiFJA.png" style="height:20px;vertical-align:middle;margin:0 2px;">';
-      const imgMuddle =
-        '<img src="https://i.namu.wiki/i/ggpxzn_E8hKPn8oBfaSRa_ccPSSE4VsLg9nWBSZ9dWTjr9inTwlwH8g7r_k44qe7ZlmODR2c9PcNzwHoZzfQ_A.png" style="height:20px;vertical-align:middle;margin:0 2px;">';
-      const imgTarget =
-        '<img src="https://i.namu.wiki/i/Udpc4joAXPntSkeoq1l1knsjFR-A0W67fz343tOPP1UsDJgv_nhxqJA8cOjWDzf3rUX4rQEen7KF6aXfCTzetQ.png" style="height:20px;vertical-align:middle;margin:0 2px;">';
-      const imgShield =
-        '<img src="https://i.namu.wiki/i/o24HYXLxtTsY-uMbEYK96nj1GY4ykfMKTDUCwH07i7d4Tu2hpNnTl4m8xO5XwVuKcXa1T-ZhJ-5MWH8GXp5mZw.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
-      const imgFire =
-        '<img src="https://i.namu.wiki/i/davOmnUZAWYd6mHm8VLCDjgGdxXjExiCAfnDQ3nEZFmUN2K4Bvx7ss2ZNaTIEzSdgeBZiIpdQO1BSatsTeDoBw.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
-      const imgWound =
-        '<img src="https://i.namu.wiki/i/EH7f-BVDuop4tCqXkyCIjiIHYmQrg8Vt32To34kIVDHpuuVK1d0GWeLGSF176yTyWfzKsjjdC9L6X_3LtC4dtg.png" style="height:20px;vertical-align:middle;margin:0 2px;">';
-      const imgImmobilize =
-        '<img src="https://i.namu.wiki/i/0O-5nr9YnjiAfhaW00DSB7diukYL5rcXq50eq7f6kFde29f3ns2qNmMG_7G_63Q6_jXp_YKUOXrm5ECk7e_s0w.png" style="height:20px;vertical-align:middle;margin:0 2px;">';
-      const imgHeal =
-        '<img src="https://i.namu.wiki/i/D4gVlq2A3BmnJOUzDpSHlXDT_me-KXEUpXAA-bYtnnMPr7o6mXG9_4hWT7Ipa01EmAhgQ-eJeppb_N4T6lWQVw.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
-      const imgCurse =
-        '<img src="https://i.namu.wiki/i/NzIIdeJ6H3htTArtcMmtoEIbPu64KKn4lBfWm6edfILDMTbaM_BAQXM0BzXHIcmHQ-olTwaCKZiT7u4e7ISEbA.png" style="height:20px;vertical-align:middle;margin:0 2px;">';
-      const imgIce =
-        '<img src="https://i.namu.wiki/i/0NHs8rYvxcni_hznX-mzmiaSkcn9WyGOj7p6GcSIIUvBw2rbLKiJlgVM4zCUT-uExV1FLS3yPOmFRzVkR3k7dA.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
-      const imgEarth =
-        '<img src="https://i.namu.wiki/i/uxDERYCyiJy6OFGS2nren_5Qjw0fIN42RvJJFHSGL953x6rSMaG_xUZgtOuC3rluvE_cw-cKfnoCti6yj4dDng.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
-      const imgAir =
-        '<img src="https://i.namu.wiki/i/xz1bvY4rdB7MBnnOyTvdy1_8eLOzU-hMWYTvBm-_jeFdPp6EGpqW-RNynbBW_tEEKsOasfWwVgqhzALsomYJeg.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
-      const imgLight =
-        '<img src="https://i.namu.wiki/i/fqMUAouPwU6nkA7FQGSZaHr07O-SOBW4vmh2M_A7QcJN4Ela23nOtxpWnf7DKPPmLLygIC9gJbtYm8hs84RJsQ.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
-      const imgDark =
-        '<img src="https://i.namu.wiki/i/apOnwkdSHbWcu5KYJJomYXP1WUdRI_radILy3UYAxcc1GFQE4abw2_CxGNaXf592DTGqfhi7bhenI6Tkf_At0Q.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
-      const imgPoison =
-        '<img src="https://i.namu.wiki/i/elegH3i275tovAcOrJpxaHZkVYQCQEKGeCHq6gHmPnoh4-maInMZeh2A50Zt4L6oEdLrNlah5oix7TwpN7Dong.png" style="height:20px;vertical-align:middle;margin:0 2px;">';
-      const imgInvisible =
-        '<img src="https://i.namu.wiki/i/vfrfyBcXD9Mz-rkTCsaqId1TFFRkDWlqKTQBPp4SMLWE7U2TEKWTIxcYsi19PeA3kQ5t7f_y4iqMTRznD7TWFw.png" style="height:20px;vertical-align:middle;margin:0 2px;">';
-      const imgRegen =
-        '<img src="https://i.namu.wiki/i/-gcs63C998Rc6PYhaQ7Ikss7J7M2eFLBPXId2SZUQpUPqUj8og8pHUF-hi-aWoPk35NyO-sh6BdhB4EszN4fEA.webp" style="height:20px;vertical-align:middle;margin:0 2px;">';
+      // 숫자/기호 모디파이어 (jpg, png)
+      const imgM1 = mkImg("-1.jpg");
+      const imgM2 = mkImg("-2.jpg");
+      const imgP0 = mkImg("+0.jpg");
+      const imgP1 = mkImg("+1.jpg");
+      const imgP2 = mkImg("+2.jpg");
+      const imgP3 = mkImg("+3.jpg");
+      const imgRoll = mkImg("굴림.png");
+
+      // 무법자, 점술사 등 전용 기호 연결 (일반 기호와 동일하게 처리)
+      const imgM2_W = imgM2;
+      const imgN1 = imgM1;
+      const imgN2 = imgM2;
+      const imgP00_W = imgP0;
+      const imgP2_W = imgP2;
+
+      // 원소, 상태이상, 전투 등 한글 파일명 적용
+      const imgPush = mkImg("밀기.png");
+      const imgPull = mkImg("당기기.png");
+      const imgPierce = mkImg("관통.png");
+      const imgTarget = mkImg("대상추가.png");
+      const imgShield = mkImg("방어.jpg");
+      const imgHeal = mkImg("치료.jpg");
+      const imgStun = mkImg("기절.png");
+      const imgDisarm = mkImg("무장해제.png");
+      const imgMuddle = mkImg("혼란.png");
+      const imgWound = mkImg("부상.png");
+      const imgImmobilize = mkImg("이동불가.png");
+      const imgPoison = mkImg("중독.png");
+      const imgCurse = mkImg("저주.png");
+      const imgInvisible = mkImg("은신.png");
+      const imgFire = mkImg("불.jpg");
+      const imgIce = mkImg("얼음.jpg");
+      const imgEarth = mkImg("대지.jpg");
+      const imgAir = mkImg("공기.jpg");
+      const imgLight = mkImg("빛.jpg");
+      const imgDark = mkImg("어둠.jpg");
+      const imgRegen = mkImg("복원.png"); // 점술사 대비용 추가
 
       const classData = {
         scoundrel: [
@@ -565,8 +540,12 @@
         memo: "",
       };
 
+      function updateStorage() {
+        localStorage.setItem("gloomHelperV18", JSON.stringify(state));
+      }
+
       function loadData() {
-        const saved = localStorage.getItem("gloomHelperV12");
+        const saved = localStorage.getItem("gloomHelperV18");
         if (saved) {
           state = JSON.parse(saved);
           document.getElementById("classSelect").value = state.classId;
@@ -574,14 +553,13 @@
         render();
       }
 
-      function saveData() {
+      function syncFromUI() {
         state.name = document.getElementById("charName").value;
         state.xpMemo = document.getElementById("xpMemo").value;
         state.goldMemo = document.getElementById("goldMemo").value;
         state.items = document.getElementById("items").value;
         state.memo = document.getElementById("memo").value;
-        localStorage.setItem("gloomHelperV12", JSON.stringify(state));
-        render();
+        updateStorage();
       }
 
       function changeClass() {
@@ -594,7 +572,8 @@
           state.classId = newClass;
           state.checkedPerks = [];
           state.checkList = [];
-          saveData();
+          updateStorage();
+          render();
         } else {
           document.getElementById("classSelect").value = state.classId;
         }
@@ -603,7 +582,8 @@
       function updateVal(key, amount) {
         state[key] += amount;
         if (state[key] < 0) state[key] = 0;
-        saveData();
+        updateStorage();
+        render();
       }
 
       function toggleCheck(index) {
@@ -612,7 +592,8 @@
         } else {
           state.checkList.push(index);
         }
-        saveData();
+        updateStorage();
+        render();
       }
 
       function togglePerk(index) {
@@ -621,32 +602,37 @@
         } else {
           state.checkedPerks.push(index);
         }
-        saveData();
+        updateStorage();
+        render();
       }
 
-      // 🌟 모든 데이터 초기화 기능
       function resetCharacter() {
         if (
           confirm(
-            "정말 이 캐릭터를 초기화하시겠습니까?\n경험치, 금화, 아이템, 특혜 등 모든 정보가 삭제됩니다.",
+            "정말 이 캐릭터를 초기화하시겠습니까?\n경험치, 금화, 아이템, 메모 등 모든 정보가 삭제됩니다.",
           )
         ) {
-          state.name = "";
-          state.xp = 0;
-          state.gold = 0;
-          state.checkList = [];
-          state.bonusPerks = 0;
-          state.xpMemo = "";
-          state.goldMemo = "";
-          state.items = "";
-          state.memo = "";
-          state.checkedPerks = [];
-          saveData();
+          state = {
+            classId: state.classId,
+            name: "",
+            xp: 0,
+            gold: 0,
+            checkList: [],
+            bonusPerks: 0,
+            xpMemo: "",
+            goldMemo: "",
+            items: "",
+            checkedPerks: [],
+            memo: "",
+          };
+          updateStorage();
+          render();
           alert("데이터가 모두 초기화되었습니다.");
         }
       }
 
       function exportData() {
+        syncFromUI();
         const dataStr = JSON.stringify(state);
         const blob = new Blob([dataStr], { type: "application/json" });
         const url = URL.createObjectURL(blob);
@@ -668,7 +654,8 @@
           try {
             state = JSON.parse(e.target.result);
             document.getElementById("classSelect").value = state.classId;
-            saveData();
+            updateStorage();
+            render();
             alert("데이터가 성공적으로 복구되었습니다!");
           } catch (err) {
             alert("잘못된 백업 파일입니다.");
@@ -699,15 +686,14 @@
           state.checkList.length;
         document.getElementById("bonusPerkDisplay").innerText =
           state.bonusPerks;
-
-        const perkEl = document.getElementById("availablePerks");
-        perkEl.innerText = availablePerks;
-        perkEl.style.color = availablePerks < 0 ? "red" : "#d9534f";
-
         document.getElementById("xpMemo").value = state.xpMemo;
         document.getElementById("goldMemo").value = state.goldMemo;
         document.getElementById("items").value = state.items;
         document.getElementById("memo").value = state.memo || "";
+
+        const perkEl = document.getElementById("availablePerks");
+        perkEl.innerText = availablePerks;
+        perkEl.style.color = availablePerks < 0 ? "red" : "#d9534f";
 
         const xpTrackContainer = document.getElementById("xpTrackContainer");
         xpTrackContainer.innerHTML = "";
