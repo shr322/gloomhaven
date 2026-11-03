@@ -284,6 +284,27 @@
         color: #ffcccc;
         font-weight: bold;
       }
+
+      .reward-btn {
+        padding: 11px 6px;
+        border: 0;
+        border-radius: 5px;
+        color: white;
+        font-weight: bold;
+        font-size: 14px;
+        cursor: pointer;
+      }
+      .reward-btn.shop {
+        background: #2867a8;
+      }
+      .reward-btn.equip {
+        background: #287a55;
+      }
+      .reward-btn:disabled {
+        background: #ccc !important;
+        color: #666 !important;
+        cursor: not-allowed;
+      }
     </style>
   </head>
   <body>
@@ -398,35 +419,89 @@
     <div class="box">
       <h3>🎒 보유 아이템 및 상점</h3>
 
-      <div class="unlock-box">
-        <div class="row" style="margin-bottom: 5px">
-          <span style="font-size: 13px; font-weight: bold"
-            >🔓 특수 아이템 해금 (번호 입력)</span
+      <details
+        class="reward-panel"
+        style="
+          background: #f7f9fc;
+          border: 1px solid #d9e2f0;
+          border-radius: 8px;
+          padding: 12px;
+          margin: 12px 0;
+        "
+      >
+        <summary
+          style="
+            cursor: pointer;
+            font-weight: bold;
+            list-style-position: inside;
+          "
+        >
+          🎁 이벤트 / 시나리오 아이템 등록
+        </summary>
+        <div style="padding-top: 10px">
+          <p
+            style="
+              font-size: 12px;
+              color: #666;
+              margin: 0 0 8px;
+              line-height: 1.5;
+            "
           >
-          <div style="display: flex; gap: 5px">
-            <input
-              type="number"
-              id="unlockInput"
-              placeholder="예: 71"
-              style="width: 70px; margin-top: 0; padding: 4px"
-            />
+            • <b>번영도 아이템 (#1~70):</b> 마을 번영도에 따라 상점에 자동
+            표시<br />
+            • <b>무작위 도안 (#71~95):</b> 🛒 상점 추가 전용<br />
+            • <b>시나리오 획득 (#96~133) & 1인 보상 (#134~150):</b> 🎁 장비 획득
+            전용 (일반 상점 구매 제외)
+          </p>
+          <label for="rewardReason" style="font-size: 13px; font-weight: bold"
+            >이벤트 / 시나리오 / 획득 경로</label
+          >
+          <input
+            type="text"
+            id="rewardReason"
+            placeholder="예: 시나리오 12 보물상자, 1인 시나리오 보상"
+            style="margin: 4px 0 10px"
+          />
+          <label
+            for="rewardItemSelect"
+            style="font-size: 13px; font-weight: bold"
+            >아이템 선택 (#71~150)</label
+          >
+          <select
+            id="rewardItemSelect"
+            style="margin: 4px 0 10px"
+            onchange="updateRewardButtons()"
+          >
+            <option value="">아이템 선택</option>
+          </select>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px">
             <button
-              onclick="unlockItem()"
-              style="
-                background: #28a745;
-                color: white;
-                border: none;
-                border-radius: 3px;
-                padding: 0 10px;
-                cursor: pointer;
-              "
+              id="btnRewardShop"
+              class="reward-btn shop"
+              onclick="applyReward('shop')"
             >
-              추가
+              🛒 상점 추가
+            </button>
+            <button
+              id="btnRewardEquip"
+              class="reward-btn equip"
+              onclick="applyReward('equip')"
+            >
+              🎁 장비 획득
             </button>
           </div>
+          <div style="margin-top: 12px; font-size: 13px; font-weight: bold">
+            🔓 상점에 추가된 무작위 도안 (#71~95)
+          </div>
+          <div
+            id="unlockedList"
+            style="min-height: 20px; margin-top: 5px"
+          ></div>
+          <div id="itemRewardLog" class="log-area" style="max-height: 90px">
+            아이템 등록 기록이 없습니다.
+          </div>
         </div>
-        <div id="unlockedList" style="min-height: 20px"></div>
-      </div>
+      </details>
 
       <div class="equip-grid">
         <button class="slot-btn" id="slot-head" onclick="openShop('head')">
@@ -773,7 +848,7 @@
       };
 
       const itemDB = [
-        // 번영도 1
+        // 번영도 1 (1~14)
         { id: 1, name: "활보의 장화", slot: "feet", price: 20, pro: 1 },
         { id: 2, name: "날개 달린 신발", slot: "feet", price: 20, pro: 1 },
         { id: 3, name: "털가죽 갑옷", slot: "body", price: 10, pro: 1 },
@@ -789,7 +864,7 @@
         { id: 13, name: "소형 활력 물약", slot: "small", price: 10, pro: 1 },
         { id: 14, name: "소형 힘 물약", slot: "small", price: 10, pro: 1 },
 
-        // 번영도 2
+        // 번영도 2 (15~21)
         { id: 15, name: "속도의 장화", slot: "feet", price: 30, pro: 2 },
         { id: 16, name: "주머니 달린 망토", slot: "body", price: 20, pro: 2 },
         { id: 17, name: "권능의 호신부", slot: "head", price: 45, pro: 2 },
@@ -798,7 +873,7 @@
         { id: 20, name: "하급 마나 물약", slot: "small", price: 10, pro: 2 },
         { id: 21, name: "기절 가루", slot: "small", price: 20, pro: 2 },
 
-        // 번영도 3
+        // 번영도 3 (22~28)
         { id: 22, name: "중갑 정강이받이", slot: "feet", price: 20, pro: 3 },
         { id: 23, name: "사슬 갑옷", slot: "body", price: 20, pro: 3 },
         { id: 24, name: "생명의 호신부", slot: "head", price: 20, pro: 3 },
@@ -807,7 +882,7 @@
         { id: 27, name: "상급 회복 물약", slot: "small", price: 30, pro: 3 },
         { id: 28, name: "달 귀걸이", slot: "small", price: 20, pro: 3 },
 
-        // 번영도 4
+        // 번영도 4 (29~35)
         { id: 29, name: "편안한 신발", slot: "feet", price: 30, pro: 4 },
         { id: 30, name: "징 박은 가죽 갑옷", slot: "body", price: 30, pro: 4 },
         { id: 31, name: "송골매 투구", slot: "head", price: 20, pro: 4 },
@@ -816,7 +891,7 @@
         { id: 34, name: "대형 활력 물약", slot: "small", price: 30, pro: 4 },
         { id: 35, name: "매 조각상", slot: "small", price: 50, pro: 4 },
 
-        // 번영도 5
+        // 번영도 5 (36~42)
         { id: 36, name: "돌진의 장화", slot: "feet", price: 40, pro: 5 },
         { id: 37, name: "초혼의 로브", slot: "body", price: 40, pro: 5 },
         { id: 38, name: "중갑 철모", slot: "head", price: 30, pro: 5 },
@@ -825,12 +900,48 @@
         { id: 41, name: "대형 힘 물약", slot: "small", price: 40, pro: 5 },
         { id: 42, name: "신속의 반지", slot: "small", price: 30, pro: 5 },
 
-        // 무작위 아이템 (71~95)
+        // 번영도 6 (43~49)
+        { id: 43, name: "기민의 장화", slot: "feet", price: 75, pro: 6 },
+        { id: 44, name: "철편 갑옷", slot: "body", price: 35, pro: 6 },
+        { id: 45, name: "어둠의 계약 목걸이", slot: "head", price: 75, pro: 6 },
+        { id: 46, name: "가시 방패", slot: "hand", price: 40, pro: 6 },
+        { id: 47, name: "수확의 낫", slot: "hand", price: 40, pro: 6 },
+        { id: 48, name: "대형 마나 물약", slot: "small", price: 30, pro: 6 },
+        { id: 49, name: "태양 귀걸이", slot: "small", price: 40, pro: 6 },
+
+        // 번영도 7 (50~56)
+        { id: 50, name: "강철 발덮개", slot: "feet", price: 60, pro: 7 },
+        { id: 51, name: "그림자 갑옷", slot: "body", price: 30, pro: 7 },
+        { id: 52, name: "보호의 부적", slot: "head", price: 60, pro: 7 },
+        { id: 53, name: "검은 칼", slot: "hand", price: 25, pro: 7 },
+        { id: 54, name: "명성의 지팡이", slot: "hand", price: 60, pro: 7 },
+        { id: 55, name: "초대형 치료 물약", slot: "small", price: 50, pro: 7 },
+        { id: 56, name: "무자비의 반지", slot: "small", price: 40, pro: 7 },
+
+        // 번영도 8 (57~63)
+        { id: 57, name: "평온의 샌들", slot: "feet", price: 75, pro: 8 },
+        { id: 58, name: "상 변이 망토", slot: "body", price: 75, pro: 8 },
+        { id: 59, name: "망원 렌즈", slot: "head", price: 50, pro: 8 },
+        { id: 60, name: "불안정한 폭발물", slot: "hand", price: 45, pro: 8 },
+        { id: 61, name: "성벽 방패", slot: "hand", price: 60, pro: 8 },
+        { id: 62, name: "파멸의 가루", slot: "small", price: 40, pro: 8 },
+        { id: 63, name: "행운의 눈", slot: "small", price: 60, pro: 8 },
+
+        // 번영도 9 (64~70)
+        { id: 64, name: "질주의 장화", slot: "feet", price: 75, pro: 9 },
+        { id: 65, name: "판금 갑옷", slot: "body", price: 50, pro: 9 },
+        { id: 66, name: "공포의 가면", slot: "head", price: 50, pro: 9 },
+        { id: 67, name: "균형 잡힌 검", slot: "hand", price: 60, pro: 9 },
+        { id: 68, name: "미늘창", slot: "hand", price: 75, pro: 9 },
+        { id: 69, name: "별 귀걸이", slot: "small", price: 70, pro: 9 },
+        { id: 70, name: "기회의 반지", slot: "small", price: 75, pro: 9 },
+
+        // 무작위 아이템 도안 (71~95) -> 상점 추가 가능
         { id: 71, name: "공중부양 장화", slot: "feet", price: 50, pro: 99 },
         { id: 72, name: "행복의 신발", slot: "feet", price: 50, pro: 99 },
         { id: 73, name: "찰나의 망토", slot: "body", price: 50, pro: 99 },
-        { id: 74, name: "칼날 갑옷", slot: "body", price: 30, pro: 99 },
-        { id: 75, name: "원소 머리띠", slot: "head", price: 40, pro: 99 },
+        { id: 74, name: "칼날 갑옷", slot: "body", price: 40, pro: 99 },
+        { id: 75, name: "원소 머리띠", slot: "head", price: 25, pro: 99 },
         { id: 76, name: "사슬 두건", slot: "head", price: 40, pro: 99 },
         { id: 77, name: "혹한검", slot: "hand", price: 30, pro: 99 },
         { id: 78, name: "폭풍검", slot: "hand", price: 30, pro: 99 },
@@ -852,7 +963,7 @@
         { id: 94, name: "치료의 두루마리", slot: "small", price: 30, pro: 99 },
         { id: 95, name: "활력의 두루마리", slot: "small", price: 50, pro: 99 },
 
-        // 기타 아이템 (96~133)
+        // 시나리오에서 직접 획득하는 아이템 (96~133) -> 장비 획득 전용
         { id: 96, name: "로켓 장화", slot: "feet", price: 80, pro: 99 },
         { id: 97, name: "인내의 발싸개", slot: "feet", price: 40, pro: 99 },
         {
@@ -870,11 +981,11 @@
           id: 103,
           name: "드레이크 비늘 갑옷",
           slot: "body",
-          price: 45,
+          price: 50,
           pro: 99,
         },
-        { id: 104, name: "증기 갑옷", slot: "body", price: 40, pro: 99 },
-        { id: 105, name: "벼룩투성이 숄", slot: "body", price: 30, pro: 99 },
+        { id: 104, name: "증기 갑옷", slot: "body", price: 50, pro: 99 },
+        { id: 105, name: "벼룩투성이 숄", slot: "body", price: 10, pro: 99 },
         { id: 106, name: "엄니 목걸이", slot: "head", price: 40, pro: 99 },
         { id: 107, name: "뿔 달린 투구", slot: "head", price: 30, pro: 99 },
         {
@@ -891,11 +1002,11 @@
         { id: 113, name: "해골 도끼", slot: "hand", price: 50, pro: 99 },
         { id: 114, name: "조른의 지팡이", slot: "hand", price: 50, pro: 99 },
         { id: 115, name: "산의 망치", slot: "hand", price: 50, pro: 99 },
-        { id: 116, name: "불붙는 언월도", slot: "hand", price: 40, pro: 99 },
+        { id: 116, name: "불붙는 언월도", slot: "hand", price: 20, pro: 99 },
         { id: 117, name: "피투성이 도끼", slot: "hand", price: 40, pro: 99 },
-        { id: 118, name: "원소 지팡이", slot: "hand", price: 40, pro: 99 },
-        { id: 119, name: "증오의 머리", slot: "head", price: 50, pro: 99 },
-        { id: 120, name: "소환 지팡이", slot: "hand", price: 50, pro: 99 },
+        { id: 118, name: "원소 지팡이", slot: "hand", price: 50, pro: 99 },
+        { id: 119, name: "증오의 머리", slot: "hand", price: 50, pro: 99 },
+        { id: 120, name: "소환 지팡이", slot: "hand", price: 60, pro: 99 },
         { id: 121, name: "새벽의 보주", slot: "hand", price: 50, pro: 99 },
         { id: 122, name: "황혼의 보주", slot: "hand", price: 50, pro: 99 },
         { id: 123, name: "해골 반지", slot: "small", price: 50, pro: 99 },
@@ -915,7 +1026,35 @@
         { id: 131, name: "변절자의 심장", slot: "small", price: 60, pro: 99 },
         { id: 132, name: "동력 코어", slot: "small", price: 75, pro: 99 },
         { id: 133, name: "공명하는 수정", slot: "small", price: 20, pro: 99 },
+
+        // 1인 시나리오 보상 아이템 (134~150) -> 일반 상점 구매 대상 제외, 장비 획득 전용
+        { id: 134, name: "위풍당당한 검", slot: "hand", price: 50, pro: 99 }, // 야만인
+        { id: 135, name: "집중 치료 광선", slot: "hand", price: 50, pro: 99 }, // 땜장이
+        { id: 136, name: "불안정한 영약", slot: "small", price: 50, pro: 99 }, // 주문직인
+        { id: 137, name: "침묵의 단검", slot: "hand", price: 50, pro: 99 }, // 무법자
+        { id: 138, name: "돌 부적", slot: "head", price: 50, pro: 99 }, // 바위심장
+        { id: 139, name: "심령술 칼", slot: "hand", price: 50, pro: 99 }, // 정신도둑
+        { id: 140, name: "태양 방패", slot: "hand", price: 50, pro: 99 }, // 태양지기
+        { id: 141, name: "만능 허리띠", slot: "small", price: 50, pro: 99 }, // 보급관
+        { id: 142, name: "위상 변화 우상", slot: "small", price: 50, pro: 99 }, // 소환사
+        { id: 143, name: "연기 영약", slot: "small", price: 50, pro: 99 }, // 어둠장막
+        { id: 144, name: "역병의 목걸이", slot: "head", price: 50, pro: 99 }, // 역병전령
+        { id: 145, name: "죽음의 가면", slot: "head", price: 50, pro: 99 }, // 광전사
+        { id: 146, name: "달인의 류트", slot: "hand", price: 50, pro: 99 }, // 위무음악가
+        { id: 147, name: "사냥꾼의 망토", slot: "body", price: 50, pro: 99 }, // 파멸사냥꾼
+        { id: 148, name: "의사의 코트", slot: "body", price: 50, pro: 99 }, // 톱니바퀴(군의관)
+        { id: 149, name: "원소의 장화", slot: "feet", price: 50, pro: 99 }, // 원소술사
+        { id: 150, name: "명령 지팡이", slot: "hand", price: 50, pro: 99 }, // 야수군주
       ];
+
+      // 🌟 4대 아이템 분류 헬퍼 함수
+      function getItemCategory(id) {
+        if (id >= 1 && id <= 70) return "prosperity"; // 번영도 아이템 -> 번영도 조건으로 상점 표시
+        if (id >= 71 && id <= 95) return "random_design"; // 무작위 도안 -> 상점 추가 가능
+        if (id >= 96 && id <= 133) return "scenario"; // 시나리오 직접 획득 -> 장비 획득으로 등록
+        if (id >= 134 && id <= 150) return "solo"; // 1인 시나리오 보상 -> 일반 상점 구매 제외 (장비 획득)
+        return "other";
+      }
 
       let state = {
         classId: "scoundrel",
@@ -929,6 +1068,7 @@
         memo: "",
         xpLogs: [],
         goldLogs: [],
+        itemLogs: [],
         prosperity: 1,
         reputation: 0,
         ownedItems: [],
@@ -991,29 +1131,12 @@
         return 0;
       }
 
-      function unlockItem() {
-        const inputId = parseInt(document.getElementById("unlockInput").value);
-        if (!inputId || isNaN(inputId))
-          return alert("아이템 번호를 입력해주세요.");
-
-        const item = itemDB.find((i) => i.id === inputId);
-        if (!item) return alert("해당 번호의 아이템 데이터가 없습니다.");
-
-        if (state.unlockedItems.includes(inputId))
-          return alert("이미 상점에 추가된 아이템입니다.");
-
-        state.unlockedItems.push(inputId);
-        document.getElementById("unlockInput").value = "";
-        updateStorage();
-        render();
-        alert(`[#${item.id}] ${item.name} 아이템이 상점에 추가되었습니다!`);
-      }
-
       function removeUnlock(id) {
-        if (confirm(`상점에서 이 아이템 해금을 취소하시겠습니까?`)) {
+        if (confirm(`상점에서 이 도안 해금을 취소하시겠습니까?`)) {
           state.unlockedItems = state.unlockedItems.filter((i) => i !== id);
           updateStorage();
           render();
+          if (currentShopSlot) openShop(currentShopSlot);
         }
       }
 
@@ -1028,34 +1151,62 @@
         let html = "";
         const mod = getPriceMod(state.reputation);
 
-        const availableItems = itemDB.filter(
-          (i) =>
-            i.slot === slotKey &&
-            (i.pro <= state.prosperity || state.unlockedItems.includes(i.id)),
-        );
+        // 🌟 상점 표시 조건:
+        // 1. 번영도 아이템(#1~70): 현재 번영도 이하이면 상점 표시 (또는 보유 중이면 판매용 표시)
+        // 2. 무작위 도안(#71~95): 상점에 해금(unlockedItems)되었거나 보유 중이면 표시
+        // 3. 시나리오 획득(#96~133) & 1인 보상(#134~150): 일반 상점 구매 제외! (단, 보유 중일 때만 판매 버튼용으로 표시)
+        const availableItems = itemDB.filter((i) => {
+          if (i.slot !== slotKey) return false;
+          const cat = getItemCategory(i.id);
+          const isOwned = state.ownedItems.includes(i.id);
+
+          if (cat === "prosperity") {
+            return i.pro <= state.prosperity || isOwned;
+          }
+          if (cat === "random_design") {
+            return state.unlockedItems.includes(i.id) || isOwned;
+          }
+          if (cat === "scenario" || cat === "solo") {
+            return isOwned; // 보유 중일 때만(판매 가능하도록) 노출
+          }
+          return false;
+        });
 
         if (availableItems.length === 0) {
           html += `<p style="color:#777; font-size:13px;">구매 가능한 아이템이 없습니다.</p>`;
         } else {
           availableItems.forEach((item) => {
-            // 🌟 아이템 보유 개수 체크 (최대 2개)
+            const cat = getItemCategory(item.id);
             const ownedCount = state.ownedItems.filter(
               (id) => id === item.id,
             ).length;
             const finalPrice = Math.max(1, item.price + mod);
             const canAfford = state.gold >= finalPrice;
 
+            // 상점 골드 구매가 가능한 아이템인지 확인 (#1~70 번영도 충족 또는 #71~95 도안 해금)
+            const canBuyFromShop =
+              (cat === "prosperity" && item.pro <= state.prosperity) ||
+              (cat === "random_design" &&
+                state.unlockedItems.includes(item.id));
+
             let btnHtml = "";
 
-            // 1개 이상 있으면 판매 버튼 추가
+            // 1개 이상 보유 중이면 판매 버튼 표시
             if (ownedCount > 0) {
               const sellPrice = Math.floor(item.price / 2);
               btnHtml += `<button class="btn-sell" onclick="sellItem(${item.id})">판매 (+${sellPrice}G)</button>`;
             }
 
-            // 2개 미만이면 구매 버튼 추가
-            if (ownedCount < 2) {
+            // 상점 구매 대상이고 2개 미만 보유 시에만 구매 버튼 표시
+            if (canBuyFromShop && ownedCount < 2) {
               btnHtml += `<button class="btn-buy" onclick="buyItem(${item.id}, ${finalPrice})" ${!canAfford ? "disabled" : ""}>${canAfford ? "구매" : "돈 부족"}</button>`;
+            }
+
+            let priceInfoHtml = `원가: ${item.price}G / <b>최종가: <span style="color:#d9534f;">${finalPrice}G</span></b>`;
+            if (cat === "solo") {
+              priceInfoHtml = `<span style="color:#287a55; font-weight:bold;">[1인 시나리오 보상 · 상점 구매 제외]</span> (원가: ${item.price}G)`;
+            } else if (cat === "scenario") {
+              priceInfoHtml = `<span style="color:#2867a8; font-weight:bold;">[시나리오 직접 획득 장비 · 상점 구매 제외]</span> (원가: ${item.price}G)`;
             }
 
             html += `
@@ -1063,7 +1214,7 @@
                 <div style="font-size:14px;">
                   <strong style="${ownedCount > 0 ? "color:#d9534f;" : ""}">[#${item.id}] ${item.name}</strong> 
                   ${ownedCount > 0 ? `<span style="color:#007bff; font-weight:bold; font-size:12px; margin-left:5px;">(보유: ${ownedCount}개)</span>` : ""}
-                  <br><span style="color:#666; font-size:12px;">원가: ${item.price}G / <b>최종가: <span style="color:#d9534f;">${finalPrice}G</span></b></span>
+                  <br><span style="color:#666; font-size:12px;">${priceInfoHtml}</span>
                 </div>
                 <div class="shop-btns">${btnHtml}</div>
               </div>
@@ -1088,8 +1239,12 @@
         currentShopSlot = null;
       }
 
-      // 🌟 구매 로직 (2개 제한 체크)
+      // 🌟 구매 로직 (#96~150 상점 구매 차단 및 2개 제한 체크)
       function buyItem(itemId, finalPrice) {
+        const cat = getItemCategory(itemId);
+        if (cat === "scenario" || cat === "solo") {
+          return alert("이 아이템은 일반 상점 구매 대상이 아닙니다.");
+        }
         if (state.gold < finalPrice) return alert("골드가 부족합니다.");
         const ownedCount = state.ownedItems.filter(
           (id) => id === itemId,
@@ -1118,7 +1273,7 @@
           const sellPrice = Math.floor(item.price / 2);
 
           state.gold += sellPrice;
-          state.ownedItems.splice(index, 1); // 1개만 삭제
+          state.ownedItems.splice(index, 1);
 
           appendLog(
             "goldLogs",
@@ -1128,6 +1283,133 @@
           render();
           openShop(currentShopSlot);
         }
+      }
+
+      // 🌟 드롭다운 목록 구성 (번영도 #1~70 제외, 3개 카테고리로 명확히 구분)
+      function populateRewardItems() {
+        const select = document.getElementById("rewardItemSelect");
+        if (!select) return;
+        const selectedValue = select.value;
+
+        const randomDesigns = itemDB.filter(
+          (i) => getItemCategory(i.id) === "random_design",
+        );
+        const scenarioItems = itemDB.filter(
+          (i) => getItemCategory(i.id) === "scenario",
+        );
+        const soloItems = itemDB.filter(
+          (i) => getItemCategory(i.id) === "solo",
+        );
+
+        const makeOptions = (list) =>
+          list
+            .map(
+              (item) =>
+                `<option value="${item.id}">[#${item.id}] ${item.name} · ${item.price}G</option>`,
+            )
+            .join("");
+
+        select.innerHTML =
+          '<option value="">아이템 선택</option>' +
+          `<optgroup label="📜 무작위 아이템 도안 (#71~95) ➔ 상점 추가">${makeOptions(randomDesigns)}</optgroup>` +
+          `<optgroup label="💎 시나리오 직접 획득 (#96~133) ➔ 장비 획득">${makeOptions(scenarioItems)}</optgroup>` +
+          `<optgroup label="🏆 1인 시나리오 보상 (#134~150) ➔ 장비 획득">${makeOptions(soloItems)}</optgroup>`;
+
+        if (
+          selectedValue &&
+          itemDB.some((item) => String(item.id) === selectedValue)
+        ) {
+          select.value = selectedValue;
+        }
+        updateRewardButtons();
+      }
+
+      // 🌟 선택한 아이템 분류에 따라 [상점 추가] / [장비 획득] 버튼 자동 잠금 제어
+      function updateRewardButtons() {
+        const select = document.getElementById("rewardItemSelect");
+        const btnShop = document.getElementById("btnRewardShop");
+        const btnEquip = document.getElementById("btnRewardEquip");
+        if (!select || !btnShop || !btnEquip) return;
+
+        const itemId = Number(select.value);
+        if (!itemId) {
+          btnShop.disabled = false;
+          btnEquip.disabled = false;
+          return;
+        }
+
+        const cat = getItemCategory(itemId);
+        if (cat === "random_design") {
+          // 무작위 도안 (#71~95) -> 상점 추가만 가능
+          btnShop.disabled = false;
+          btnEquip.disabled = true;
+        } else if (cat === "scenario" || cat === "solo") {
+          // 시나리오 직접 획득 (#96~133) & 1인 보상 (#134~150) -> 장비 획득만 가능
+          btnShop.disabled = true;
+          btnEquip.disabled = false;
+        }
+      }
+
+      function applyReward(mode) {
+        const reason = document.getElementById("rewardReason").value.trim();
+        const itemValue = document.getElementById("rewardItemSelect").value;
+        const itemId = itemValue === "" ? null : Number(itemValue);
+
+        if (!reason)
+          return alert("이벤트 / 시나리오 등 획득 경로를 입력해주세요.");
+        if (itemId === null) return alert("아이템을 선택해주세요.");
+
+        const item = itemDB.find((entry) => entry.id === itemId);
+        if (!item) return alert("선택한 아이템을 찾을 수 없습니다.");
+
+        const cat = getItemCategory(item.id);
+
+        if (mode === "shop") {
+          if (cat !== "random_design") {
+            return alert(
+              "상점 추가는 무작위 도안(#71~95) 아이템만 가능합니다. (#96~150 아이템은 [장비 획득]으로 등록해주세요.)",
+            );
+          }
+          if (state.unlockedItems.includes(item.id)) {
+            return alert(`${item.name} 도안은 이미 상점에 추가되어 있습니다.`);
+          }
+          state.unlockedItems.push(item.id);
+          appendLog(
+            "itemLogs",
+            `+상점 추가: [#${item.id}] ${item.name} · ${reason}`,
+          );
+          alert(
+            `${item.name} 도안을 상점에 추가했습니다. 이제 해당 부위 상점에서 구매할 수 있습니다.`,
+          );
+        } else if (mode === "equip") {
+          if (cat === "random_design") {
+            return alert(
+              "무작위 도안 아이템(#71~95)은 [상점 추가] 후 상점에서 골드로 구매해야 합니다.",
+            );
+          }
+          const ownedCount = state.ownedItems.filter(
+            (id) => id === item.id,
+          ).length;
+          if (ownedCount >= 2) {
+            return alert("같은 아이템은 최대 2개까지만 보유할 수 있습니다.");
+          }
+          state.ownedItems.push(item.id);
+          appendLog(
+            "itemLogs",
+            `+장비 획득: [#${item.id}] ${item.name} · ${reason}`,
+          );
+          alert(
+            `${item.name} 아이템을 보유 장비에 바로 등록했습니다. (금화 차감 없음)`,
+          );
+        } else {
+          return;
+        }
+
+        document.getElementById("rewardReason").value = "";
+        document.getElementById("rewardItemSelect").value = "";
+        updateStorage();
+        render();
+        if (currentShopSlot) openShop(currentShopSlot);
       }
 
       function updateStorage() {
@@ -1145,10 +1427,16 @@
           state = { ...state, ...parsed };
           if (!state.xpLogs) state.xpLogs = [];
           if (!state.goldLogs) state.goldLogs = [];
+          if (!state.itemLogs) state.itemLogs = [];
           if (state.prosperity === undefined) state.prosperity = 1;
           if (state.reputation === undefined) state.reputation = 0;
           if (!state.unlockedItems) state.unlockedItems = [];
           if (!state.ownedItems) state.ownedItems = [];
+
+          // 상점 해금 목록에는 무작위 도안(#71~95)만 남도록 정리
+          state.unlockedItems = state.unlockedItems.filter(
+            (id) => getItemCategory(id) === "random_design",
+          );
 
           document.getElementById("classSelect").value = state.classId;
         }
@@ -1165,6 +1453,7 @@
         state.memo = document.getElementById("memo").value;
         updateStorage();
         render();
+        if (currentShopSlot) openShop(currentShopSlot);
       }
 
       function changeClass() {
@@ -1229,6 +1518,7 @@
             memo: "",
             xpLogs: [],
             goldLogs: [],
+            itemLogs: [],
             prosperity: 1,
             reputation: 0,
             ownedItems: [],
@@ -1236,6 +1526,7 @@
           };
           updateStorage();
           render();
+          closeShop();
           alert("데이터가 모두 초기화되었습니다.");
         }
       }
@@ -1265,10 +1556,15 @@
             state = { ...state, ...parsed };
             if (!state.xpLogs) state.xpLogs = [];
             if (!state.goldLogs) state.goldLogs = [];
+            if (!state.itemLogs) state.itemLogs = [];
             if (state.prosperity === undefined) state.prosperity = 1;
             if (state.reputation === undefined) state.reputation = 0;
             if (!state.ownedItems) state.ownedItems = [];
             if (!state.unlockedItems) state.unlockedItems = [];
+
+            state.unlockedItems = state.unlockedItems.filter(
+              (id) => getItemCategory(id) === "random_design",
+            );
 
             document.getElementById("classSelect").value = state.classId;
             updateStorage();
@@ -1312,6 +1608,8 @@
         // 🌟 로그에 색상 적용
         renderLogs(state.xpLogs, "xpLog");
         renderLogs(state.goldLogs, "goldLog");
+        renderLogs(state.itemLogs, "itemRewardLog");
+        populateRewardItems();
 
         const unlockedListEl = document.getElementById("unlockedList");
         if (state.unlockedItems.length > 0) {
@@ -1325,7 +1623,7 @@
             .join("");
         } else {
           unlockedListEl.innerHTML =
-            '<span style="font-size:11px; color:#999;">해금된 추가 아이템이 없습니다.</span>';
+            '<span style="font-size:11px; color:#999;">상점에 추가된 무작위 도안이 없습니다.</span>';
         }
 
         const slots = ["head", "body", "hand", "feet", "small"];
